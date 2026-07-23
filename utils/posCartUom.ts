@@ -65,6 +65,7 @@ export function cartLineToOrderProduct(item: UomCartItem) {
     item.qty,
     baseUnit,
     item.selectedUnit,
+    item.stockItem.inventoryId.buyingPrice,
   );
 }
 

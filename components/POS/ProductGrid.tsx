@@ -5,6 +5,7 @@ import {
   Store,
   ChevronDown,
   Scan,
+  ShoppingCart,
 } from "lucide-react";
 import { StorefrontProfile } from "../../services/Storefront/fetchStorefrontProfiles";
 import { StorefrontStockItem } from "../../services/Storefront/fetchStorefrontStock";
@@ -34,6 +35,9 @@ interface ProductGridProps {
     itemsPerPage: number;
     devices: { isMobile: boolean };
   };
+  cartCount: number;
+  showMobileCart: boolean;
+  setShowMobileCart: (val: boolean) => void;
 }
 
 export const ProductGrid: React.FC<ProductGridProps> = ({
@@ -58,12 +62,15 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   loading,
   t,
   p,
+  cartCount,
+  showMobileCart,
+  setShowMobileCart,
 }) => {
   return (
     <div className="flex-1 flex flex-col px-6 py-4 overflow-hidden">
       <div className="mb-4">
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1">
+        <div className="flex items-center gap-3 flex-col sm:flex-row">
+          <div className="relative w-full sm:flex-1">
             <Search className="absolute left-3 top-[13px] h-5 w-5 text-gray-400 pointer-events-none" />
             <Scan className="absolute right-3 top-[13px] h-5 w-5 text-gray-400 pointer-events-none opacity-50" />
             <input
@@ -93,20 +100,21 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
             />
           </div>
 
-          <select
-            className="border border-dark-200 rounded-xl px-4 py-2.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none shadow-sm"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            <option value="All">{t("pos.allCategories")}</option>
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+          <div className="flex gap-3 w-full sm:w-auto">
+            <select
+              className="w-full sm:w-auto border border-dark-200 rounded-xl px-4 py-2.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none shadow-sm"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              <option value="All">{t("pos.allCategories")}</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
 
-          <div className="relative">
+            <div className="relative flex-1 sm:flex-initial">
             <button
               onClick={() => setShowStorefrontMenu(!showStorefrontMenu)}
               className="flex items-center gap-2 px-3 py-2.5 bg-dark text-white rounded-xl hover:bg-dark-800 transition-all shadow-sm"
@@ -186,6 +194,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
                 </div>
               </>
             )}
+          </div>
           </div>
         </div>
       </div>
@@ -308,6 +317,20 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
           ))
         )}
       </div>
+
+      {/* Mobile Cart FAB */}
+      <button
+        onClick={() => setShowMobileCart(true)}
+        className="fixed bottom-6 right-6 z-30 lg:hidden flex items-center gap-2 bg-primary text-white px-5 py-3 rounded-full shadow-2xl hover:bg-primary/90 transition-all active:scale-95"
+      >
+        <ShoppingCart className="w-5 h-5" />
+        {cartCount > 0 && (
+          <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md">
+            {cartCount > 99 ? '99+' : cartCount}
+          </span>
+        )}
+        <span className="text-sm font-semibold">Cart</span>
+      </button>
     </div>
   );
 };

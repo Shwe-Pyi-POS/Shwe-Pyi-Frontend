@@ -62,6 +62,8 @@ export const POS: React.FC = () => {
     createdAt,
     setCreatedAt,
     devices,
+    showMobileCart,
+    setShowMobileCart,
     filteredProducts,
     subtotal,
     total,
@@ -127,6 +129,9 @@ export const POS: React.FC = () => {
         loading={loading}
         t={t}
         p={{ itemsPerPage: 100, devices }}
+        cartCount={cart.reduce((sum, item) => sum + item.qty, 0)}
+        showMobileCart={showMobileCart}
+        setShowMobileCart={setShowMobileCart}
       />
 
       <CartSidebar
@@ -144,6 +149,9 @@ export const POS: React.FC = () => {
         storefronts={storefronts}
         selectedStorefrontId={selectedStorefrontId}
         t={t}
+        showMobileCart={showMobileCart}
+        setShowMobileCart={setShowMobileCart}
+        devices={devices}
       />
 
       {isProcessing && (

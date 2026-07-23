@@ -96,11 +96,13 @@ export function buildOrderProductLine(
   quantity: number,
   baseUnit: string,
   selectedUnit: string,
-): { inventoryId: string; quantity: number; unit?: string } {
+  buyingPrice?: number,
+): { inventoryId: string; quantity: number; unit?: string; buyingPrice?: number } {
   return {
     inventoryId,
     quantity,
     unit: selectedUnit || baseUnit,
+    ...(buyingPrice !== undefined ? { buyingPrice } : {}),
   };
 }
 

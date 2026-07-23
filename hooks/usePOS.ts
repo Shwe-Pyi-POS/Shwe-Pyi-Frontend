@@ -75,6 +75,7 @@ export const usePOS = () => {
     new Date().toISOString().split("T")[0],
   );
   const devices = detectDevice();
+  const [showMobileCart, setShowMobileCart] = useState(false);
   const DIRECT_SALE_STOREFRONT_ID = "6a28df12c5cf1644db3c35a1";
 
   const loadInitialData = async () => {
@@ -519,6 +520,8 @@ export const usePOS = () => {
     createdAt,
     setCreatedAt,
     devices,
+    showMobileCart,
+    setShowMobileCart,
     filteredProducts,
     subtotal,
     total,

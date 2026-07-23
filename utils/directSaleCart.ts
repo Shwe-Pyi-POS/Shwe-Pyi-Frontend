@@ -46,6 +46,7 @@ export function directSaleLineToOrderProduct(item: DirectSaleCartItem) {
       item.qty,
       baseUnit,
       item.selectedUnit,
+      item.stockItem.inventoryId.buyingPrice,
     ),
     unitPrice: item.unitPrice,
   };

@@ -15,6 +15,7 @@ export interface ProductSalesData {
   brand: string;
   unitOfMeasure: string;
   averageUnitPrice: number;
+  buyingPrice?: number;
 }
 
 export interface ProductSalesStatisticsResponse {
@@ -34,6 +35,8 @@ export interface ProductSalesStatisticsResponse {
       totalQuantity: number;
       totalRevenue: number;
       totalUniqueProducts: number;
+      totalBuyingCost?: number;
+      totalProfit?: number;
     };
     products: ProductSalesData[];
   };
@@ -93,6 +96,8 @@ export const fetchProductSalesStatistics = async (
           totalQuantity: 0,
           totalRevenue: 0,
           totalUniqueProducts: 0,
+          totalBuyingCost: 0,
+          totalProfit: 0,
         },
         products: [],
       },
@@ -155,6 +160,8 @@ export const fetchAllStorefrontsProductSalesStatistics = async (
           totalQuantity: 0,
           totalRevenue: 0,
           totalUniqueProducts: 0,
+          totalBuyingCost: 0,
+          totalProfit: 0,
         },
         products: [],
       },

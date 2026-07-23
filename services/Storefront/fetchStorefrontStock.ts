@@ -10,6 +10,7 @@ export interface StorefrontStockInventory {
   profitMargin: number | null;
   profitAmount: number | null;
   sellingPrice?: number;
+  buyingPrice?: number;
   unitOfMeasure?: string;
   uomConversions?: UomConversion[];
 }

@@ -87,6 +87,10 @@ export interface FetchOrdersQueryOptions {
   saleType?: "storefront" | "direct-sale";
   /** Server-side search (e.g. product name) — GET /order?search=... */
   search?: string | null;
+  /** Filter by buying price — GET /order?buyingPrice=... */
+  buyingPrice?: number | null;
+  /** Filter by unit price (selling price) — GET /order?unitPrice=... */
+  unitPrice?: number | null;
 }
 
 export interface FetchOrdersResponse {
@@ -129,6 +133,14 @@ export const fetchOrders = async (
 
     if (query?.search) {
       params.append("search", query.search);
+    }
+
+    if (query?.buyingPrice !== undefined && query?.buyingPrice !== null) {
+      params.append("buyingPrice", String(query.buyingPrice));
+    }
+
+    if (query?.unitPrice !== undefined && query?.unitPrice !== null) {
+      params.append("unitPrice", String(query.unitPrice));
     }
 
     if (startDate) {
