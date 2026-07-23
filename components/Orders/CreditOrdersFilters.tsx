@@ -71,8 +71,14 @@ export const CreditOrdersFilters: React.FC<CreditOrdersFiltersProps> = ({
               onChange={(e) => onPaymentMethodChange(e.target.value)}
             >
               <option value="all">{t("creditOrders.allmethod")}</option>
-              <option value="normal">Normal</option>
-              <option value="hot">Hot</option>
+              <option value="cash">Cash</option>
+              <option value="kpay">KBZ Pay</option>
+              <option value="wavepay">Wave Pay</option>
+              <option value="ayapay">AYA Pay</option>
+              <option value="uabpay">UAB Pay</option>
+              <option value="bank_transfer">Bank Transfer</option>
+              <option value="MMQR">MMQR</option>
+              <option value="foc">FOC</option>
             </select>
           </div>
 

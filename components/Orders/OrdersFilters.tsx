@@ -2,7 +2,6 @@ import React from "react";
 import { Search } from "lucide-react";
 import { StorefrontProfile } from "../../services/Storefront/fetchStorefrontProfiles";
 import { Order } from "../../services/Order/fetchOrders";
-import { getPaymentMethodLabel } from "./orderUtils";
 import { useLanguage } from "@/context/LanguageContext";
 
 interface OrdersFiltersProps {
@@ -41,9 +40,6 @@ export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
   hideStorefrontFilter = false,
 }) => {
   const { t } = useLanguage();
-  const uniquePaymentMethods = Array.from(
-    new Set(orders.map((o) => o.paymentMethod).filter(Boolean)),
-  );
 
   return (
     <div className="bg-white p-4 rounded-xl shadow-sm border mb-6">
@@ -102,11 +98,14 @@ export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
               onChange={(e) => onPaymentMethodChange(e.target.value)}
             >
               <option value="all">{t("creditOrders.allmethod")}</option>
-              {uniquePaymentMethods.map((method) => (
-                <option key={String(method)} value={String(method)}>
-                  {getPaymentMethodLabel(String(method))}
-                </option>
-              ))}
+              <option value="cash">Cash</option>
+              <option value="kpay">KBZ Pay</option>
+              <option value="wavepay">Wave Pay</option>
+              <option value="ayapay">AYA Pay</option>
+              <option value="uabpay">UAB Pay</option>
+              <option value="bank_transfer">Bank Transfer</option>
+              <option value="MMQR">MMQR</option>
+              <option value="foc">FOC</option>
             </select>
           </div>
 
