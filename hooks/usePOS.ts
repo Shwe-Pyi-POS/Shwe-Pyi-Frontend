@@ -80,6 +80,8 @@ export const usePOS = () => {
   const devices = detectDevice();
   const [showMobileCart, setShowMobileCart] = useState(false);
   const [convertingQuotationId, setConvertingQuotationId] = useState<string | null>(null);
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const location = useLocation();
 
   useEffect(() => {
@@ -459,6 +461,8 @@ export const usePOS = () => {
           ? { creditPersonId: selectedCreditPersonId }
           : {}),
         ...(note.trim() ? { note: note.trim() } : {}),
+        ...(customerName.trim() ? { customerName: customerName.trim() } : {}),
+        ...(customerPhone.trim() ? { customerPhone: customerPhone.trim() } : {}),
       };
 
       const result = await createOrder(orderPayload);
@@ -491,9 +495,9 @@ export const usePOS = () => {
           change: finalPaidAmount - total,
           paymentMethod,
           note,
-          customerName: selectedPersona?.name,
-          customerPhone: selectedPersona?.phone,
-          customerAddress: selectedPersona?.address,
+          customerName: selectedPersona?.name || customerName || "Walk-in Customer",
+          customerPhone: selectedPersona?.phone || customerPhone || "",
+          customerAddress: selectedPersona?.address || "",
         };
 
         const receiptId = `receipt_${receiptData.invoiceNumber}`;
@@ -510,6 +514,8 @@ export const usePOS = () => {
         setMarkupAmount(0);
         setTransportFee(0);
         setNote("");
+        setCustomerName("");
+        setCustomerPhone("");
         setPaidAmount(0);
         setPaymentMethod(
           paymentType === "credit" ? PaymentMethod.NORMAL : PaymentMethod.CASH,
