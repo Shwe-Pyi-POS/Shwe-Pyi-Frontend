@@ -186,7 +186,7 @@ export const DirectSaleCheckoutModal: React.FC<
                   setPaymentMethod(PaymentMethod.CASH);
                   setPaidAmount(Math.ceil(total));
                 } else if (e.target.value === "credit") {
-                  setPaymentMethod(PaymentMethod.NORMAL);
+                  setPaymentMethod(PaymentMethod.CASH);
                   setPaidAmount(0);
                 }
               }}
@@ -310,33 +310,24 @@ export const DirectSaleCheckoutModal: React.FC<
                 setPaymentMethod(e.target.value as PaymentMethod)
               }
             >
-              {paymentType === "credit" ? (
-                <>
-                  <option value={PaymentMethod.NORMAL}>normal</option>
-                  <option value={PaymentMethod.HOT}>hot</option>
-                </>
-              ) : (
-                <>
-                  <option value={PaymentMethod.CASH}>{t("pos.cash")}</option>
-                  <option value={PaymentMethod.KBZ_PAY}>
-                    {t("pos.kbzPay")}
-                  </option>
-                  <option value={PaymentMethod.WAVE_PAY}>
-                    {t("pos.wavePay")}
-                  </option>
-                  <option value={PaymentMethod.AYA_PAY}>
-                    {t("pos.ayaPay")}
-                  </option>
-                  <option value={PaymentMethod.UAB_PAY}>
-                    {t("pos.uabPay")}
-                  </option>
-                  <option value={PaymentMethod.BANK_TRANSFER}>
-                    {t("pos.bankTransfer")}
-                  </option>
-                  <option value={PaymentMethod.MMQR}>MMQR</option>
-                  <option value={PaymentMethod.FOC}>FOC</option>
-                </>
-              )}
+              <option value={PaymentMethod.CASH}>{t("pos.cash")}</option>
+              <option value={PaymentMethod.KBZ_PAY}>
+                {t("pos.kbzPay")}
+              </option>
+              <option value={PaymentMethod.WAVE_PAY}>
+                {t("pos.wavePay")}
+              </option>
+              <option value={PaymentMethod.AYA_PAY}>
+                {t("pos.ayaPay")}
+              </option>
+              <option value={PaymentMethod.UAB_PAY}>
+                {t("pos.uabPay")}
+              </option>
+              <option value={PaymentMethod.BANK_TRANSFER}>
+                {t("pos.bankTransfer")}
+              </option>
+              <option value={PaymentMethod.MMQR}>MMQR</option>
+              <option value={PaymentMethod.FOC}>FOC</option>
             </select>
           </div>
 
