@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { AddCustomerInline } from "../components/POS/AddCustomerInline";
@@ -92,6 +92,7 @@ export const QuotationCreate: React.FC = () => {
   const [customerSearch, setCustomerSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [showAddCustomerForm, setShowAddCustomerForm] = useState(false);
+  const autocompleteRef = useRef<HTMLDivElement>(null);
 
   const handleAddCustomer = async (
     name: string,
@@ -294,6 +295,16 @@ export const QuotationCreate: React.FC = () => {
       loadStockItems();
     }
   }, [selectedStorefrontId, search, selectedCategory, currentPage, saleMode, loading, loadStockItems]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (autocompleteRef.current && !autocompleteRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const filteredProducts = allStockItems.filter(
     (item) => item.inventoryId?._id !== HIDDEN_PRODUCT_ID,
@@ -880,7 +891,7 @@ export const QuotationCreate: React.FC = () => {
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               <div className="flex gap-2 items-start">
-                <div className="relative flex-1">
+                <div className="relative flex-1" ref={autocompleteRef}>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {t("pos.selectCustomer") || "Select Customer"} ({t("common.optional")})
                   </label>
@@ -918,15 +929,13 @@ export const QuotationCreate: React.FC = () => {
                       )}
                     </div>
                     {showDropdown && (
-                      <>
-                        <div className="fixed inset-0 z-10" onClick={() => setShowDropdown(false)} />
-                        <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                          {creditPersonas
-                            .filter((p) =>
-                              p.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
-                              (p.phone && p.phone.includes(customerSearch))
-                            )
-                            .slice(0, 10)
+                      <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
+                        {creditPersonas
+                          .filter((p) =>
+                            p.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
+                            (p.phone && p.phone.includes(customerSearch))
+                          )
+                          .slice(0, 50)
                             .map((persona) => (
                               <div
                                 key={persona._id}
@@ -956,7 +965,6 @@ export const QuotationCreate: React.FC = () => {
                               </div>
                             )}
                         </div>
-                      </>
                     )}
                   </div>
                 </div>

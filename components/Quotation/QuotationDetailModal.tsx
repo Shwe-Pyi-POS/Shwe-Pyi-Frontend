@@ -163,12 +163,19 @@ export const QuotationDetailModal: React.FC<QuotationDetailModalProps> = ({
     navigate("/orders");
   };
 
+  const convertedOrder =
+    quotation && typeof quotation.convertedOrderId === "object"
+      ? quotation.convertedOrderId
+      : quotation && quotation.convertedOrderId
+        ? { _id: quotation.convertedOrderId, orderNumber: undefined }
+        : null;
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl relative border border-slate-100">
-        
+
         {/* Modal Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/50">
           <div className="flex items-center gap-2">
@@ -220,7 +227,7 @@ export const QuotationDetailModal: React.FC<QuotationDetailModalProps> = ({
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 bg-white text-slate-700 rounded-lg text-xs font-medium hover:bg-slate-50 hover:text-slate-900 transition-colors active:scale-95"
                   >
                     <Printer className="w-3.5 h-3.5" />
-                    {t("common.print") || "Print"}
+                    <span>Print</span>
                   </button>
 
                   {quotation.status === "draft" && (
@@ -446,7 +453,7 @@ export const QuotationDetailModal: React.FC<QuotationDetailModalProps> = ({
                 <h3 className="font-bold text-slate-800 text-xs uppercase tracking-wider pb-2 border-b border-slate-100">
                   Quotation Summary
                 </h3>
-                
+
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-slate-500">{t("common.subtotal")}</span>
@@ -460,7 +467,7 @@ export const QuotationDetailModal: React.FC<QuotationDetailModalProps> = ({
                     <span className="text-slate-500">{t("common.discount")}</span>
                     <span className="font-medium text-emerald-600">-{formatMMK(quotation.discount)}</span>
                   </div>
-                  
+
                   <div className="flex justify-between pt-2 border-t border-slate-100 items-baseline">
                     <span className="text-slate-900 font-bold text-sm">{t("quotation.finalAmount")}</span>
                     <span className="text-primary font-extrabold text-base font-mono tracking-tight">

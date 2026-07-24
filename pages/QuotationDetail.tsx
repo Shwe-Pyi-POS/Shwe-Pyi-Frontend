@@ -87,11 +87,11 @@ export const QuotationDetail: React.FC = () => {
   };
 
   const handleConvertSuccess = (orderId: string, orderNumber?: string) => {
-     setShowConvert(false);
-     load();
-     if (orderNumber) {
-       toast.success(`${t("quotation.convert.success")} — ${orderNumber}`);
-     }
+    setShowConvert(false);
+    load();
+    if (orderNumber) {
+      toast.success(`${t("quotation.convert.success")} — ${orderNumber}`);
+    }
   };
 
   if (loading || !quotation) {
@@ -217,7 +217,7 @@ export const QuotationDetail: React.FC = () => {
 
       {/* Stacked Cards Layout */}
       <div className="space-y-5">
-        
+
         {/* Products Card */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
@@ -288,7 +288,7 @@ export const QuotationDetail: React.FC = () => {
                 to={`/credits?search=${encodeURIComponent(creditPerson.name)}`}
                 className="text-[11px] font-semibold bg-primary/10 text-primary hover:bg-primary/20 px-2 py-0.5 rounded-md flex items-center gap-0.5 transition-colors"
               >
-                Ledger <ExternalLink className="w-2.5 h-2.5" />
+                Profile <ExternalLink className="w-2.5 h-2.5" />
               </Link>
             )}
           </div>
@@ -368,7 +368,7 @@ export const QuotationDetail: React.FC = () => {
           <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wider pb-2 border-b border-slate-100">
             Quotation Summary
           </h3>
-          
+
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-slate-500">{t("common.subtotal")}</span>
@@ -382,7 +382,7 @@ export const QuotationDetail: React.FC = () => {
               <span className="text-slate-500">{t("common.discount")}</span>
               <span className="font-medium text-emerald-600">-{formatMMK(quotation.discount)}</span>
             </div>
-            
+
             <div className="flex justify-between pt-3 border-t border-slate-100 items-baseline">
               <span className="text-slate-900 font-bold text-base">{t("quotation.finalAmount")}</span>
               <span className="text-primary font-extrabold text-xl font-mono tracking-tight">
