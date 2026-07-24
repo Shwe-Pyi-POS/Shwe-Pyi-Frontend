@@ -182,67 +182,83 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {paymentType === "credit" ? t("pos.selectCreditPerson") : t("pos.selectCustomer")}
             </label>
-            <div className="relative" ref={autocompleteRef}>
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder={selectedPersona ? selectedPersona.name : "Search by name or phone..."}
-                  value={showDropdown ? customerSearch : (selectedPersona ? selectedPersona.name : customerSearch)}
-                  onFocus={() => setShowDropdown(true)}
-                  onChange={(e) => {
-                    setCustomerSearch(e.target.value);
-                    setShowDropdown(true);
-                  }}
-                  className="w-full pl-9 pr-8 py-2.5 border border-orange-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none bg-orange-50"
-                />
-                {selectedPersona && !showDropdown && (
-                  <button
-                    onClick={handleClearCustomer}
-                    className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-                {!selectedPersona && (
-                  <ChevronDown className="absolute right-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
+            <div className="flex gap-2 items-start">
+              <div className="relative flex-1" ref={autocompleteRef}>
+                <div className="relative">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder={selectedPersona ? selectedPersona.name : "Search by name or phone..."}
+                    value={showDropdown ? customerSearch : (selectedPersona ? selectedPersona.name : customerSearch)}
+                    onFocus={() => setShowDropdown(true)}
+                    onChange={(e) => {
+                      setCustomerSearch(e.target.value);
+                      setShowDropdown(true);
+                    }}
+                    className="w-full pl-9 pr-8 py-2.5 border border-primary-200 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-primary/5 text-gray-800"
+                  />
+                  {selectedPersona && !showDropdown && (
+                    <button
+                      onClick={handleClearCustomer}
+                      className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                  {!selectedPersona && (
+                    <ChevronDown className="absolute right-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
+                  )}
+                </div>
+                {showDropdown && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    {filteredPersonas.length === 0 && (
+                      <div className="px-3 py-2 text-sm text-gray-500">
+                        {customerSearch ? "No customers found" : "No customers available"}
+                      </div>
+                    )}
+                    {filteredPersonas.map((persona) => (
+                      <div
+                        key={persona._id}
+                        onClick={() => handleSelectCustomer(persona)}
+                        className={`px-3 py-2.5 text-sm cursor-pointer hover:bg-primary/5 flex items-center gap-2 ${
+                          persona._id === selectedCreditPersonId ? "bg-primary/10 text-primary font-medium" : "text-gray-700"
+                        }`}
+                      >
+                        <User className="w-4 h-4 text-gray-400 shrink-0" />
+                        <div>
+                          <p className="font-medium">{persona.name}</p>
+                          <p className="text-xs text-gray-500">{persona.phone}</p>
+                        </div>
+                      </div>
+                    ))}
+                    <div
+                      onClick={() => {
+                        setShowAddCustomerForm(true);
+                        setShowDropdown(false);
+                        setCustomerSearch("");
+                      }}
+                      className="px-3 py-2.5 text-sm cursor-pointer hover:bg-primary/5 text-primary font-medium border-t flex items-center gap-2"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      + Add New Customer
+                    </div>
+                  </div>
                 )}
               </div>
-              {showDropdown && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                  {filteredPersonas.length === 0 && (
-                    <div className="px-3 py-2 text-sm text-gray-500">
-                      {customerSearch ? "No customers found" : "No customers available"}
-                    </div>
-                  )}
-                  {filteredPersonas.map((persona) => (
-                    <div
-                      key={persona._id}
-                      onClick={() => handleSelectCustomer(persona)}
-                      className={`px-3 py-2.5 text-sm cursor-pointer hover:bg-orange-50 flex items-center gap-2 ${
-                        persona._id === selectedCreditPersonId ? "bg-orange-100 text-orange-800" : "text-gray-700"
-                      }`}
-                    >
-                      <User className="w-4 h-4 text-gray-400 shrink-0" />
-                      <div>
-                        <p className="font-medium">{persona.name}</p>
-                        <p className="text-xs text-gray-500">{persona.phone}</p>
-                      </div>
-                    </div>
-                  ))}
-                  <div
-                    onClick={() => {
-                      setShowAddCustomerForm(true);
-                      setShowDropdown(false);
-                      setCustomerSearch("");
-                    }}
-                    className="px-3 py-2.5 text-sm cursor-pointer hover:bg-orange-50 text-orange-600 font-medium border-t flex items-center gap-2"
-                  >
-                    <UserPlus className="w-4 h-4" />
-                    + Add New Customer
-                  </div>
-                </div>
-              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddCustomerForm(!showAddCustomerForm);
+                }}
+                className={`p-2.5 border rounded-lg flex items-center justify-center transition-colors text-sm font-medium shrink-0 ${
+                  showAddCustomerForm
+                    ? "bg-primary text-white border-primary hover:bg-primary-600"
+                    : "bg-white text-primary border-primary/20 hover:bg-primary/5"
+                }`}
+                title="Add New Customer"
+              >
+                <UserPlus className="w-5 h-5" />
+              </button>
             </div>
               {showAddCustomerForm && (
                 <div className="mt-2">

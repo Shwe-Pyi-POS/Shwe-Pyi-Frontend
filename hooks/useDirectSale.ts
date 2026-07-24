@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { markQuotationAsConverted } from "../services/Quotation/quotationApi";
 import { toast } from "sonner";
 import { useLanguage } from "../context/LanguageContext";
 import { getSavedPrintPaperSize } from "../utils/printPaperSize";
@@ -29,6 +30,8 @@ import {
 } from "../utils/directSaleCart";
 import { getCartLineId } from "../utils/posCartUom";
 import { PaymentMethod } from "../types/pos";
+
+const DIRECT_SALE_STOREFRONT_ID = import.meta.env.VITE_DIRECT_SALE_STOREFRONT_ID || "6a28df12c5cf1644db3c35a1";
 
 export const useDirectSale = () => {
   const { t } = useLanguage();
@@ -77,26 +80,111 @@ export const useDirectSale = () => {
   );
   const devices = detectDevice();
 
+  const [convertingQuotationId, setConvertingQuotationId] = useState<string | null>(null);
+  const location = useLocation();
+
   useEffect(() => {
-    loadInitialData();
-  }, []);
+    const state = location.state as { quotationToConvert?: any } | null;
+    if (state?.quotationToConvert) {
+      const q = state.quotationToConvert;
+      setConvertingQuotationId(q._id);
+
+      // Set customer
+      if (q.customerName) setCustomerName(q.customerName);
+      if (q.customerPhone) setCustomerPhone(q.customerPhone);
+      if (q.note) setNote(q.note);
+      if (q.discount) setDiscount(q.discount);
+      const cpId = typeof q.creditPersonId === "object" ? q.creditPersonId?._id : q.creditPersonId;
+      if (cpId) setSelectedCreditPersonId(cpId);
+
+      // Set storefront
+      const sfId = typeof q.storefrontId === "object" ? q.storefrontId?._id : q.storefrontId;
+      if (sfId) setSelectedStorefrontId(sfId);
+
+      // Populate cart
+      const products = q.products?.length ? q.products : q.ordersProducts || [];
+      const loadedCart: DirectSaleCartItem[] = products.map((p: any) => {
+        const inv = p.inventoryId;
+        const invId = typeof inv === "string" ? inv : inv._id;
+        const baseUnit = typeof inv === "object" ? inv.unitOfMeasure?.trim() || "piece" : "piece";
+        const selectedUnit = p.unit || baseUnit;
+        const stockItem: StorefrontStockItem = {
+          _id: `q-${invId}`,
+          storefrontId: {
+            _id: sfId || "",
+            locationCode: "",
+            locationName: "",
+          },
+          inventoryId: {
+            _id: invId,
+            productName: p.productName || (typeof inv === "object" ? inv.productName : "") || "",
+            productCode: p.productCode || (typeof inv === "object" ? inv.productCode : "") || "",
+            SKU: typeof inv === "object" ? inv.SKU || "" : "",
+            category: "",
+            profitMargin: null,
+            profitAmount: null,
+            sellingPrice: p.unitPrice || (typeof inv === "object" ? inv.sellingPrice : 0) || 0,
+            unitOfMeasure: baseUnit,
+            uomConversions: typeof inv === "object" ? inv.uomConversions : undefined,
+          },
+          quantity: p.quantity,
+          availableQuantity: 999999,
+          isLowStock: false,
+          lastUpdated: "",
+          createdAt: "",
+          updatedAt: "",
+        };
+        const unitPrice = p.unitPrice || (typeof inv === "object" ? inv.sellingPrice : 0) || 0;
+        return { stockItem, qty: p.quantity, selectedUnit, unitPrice };
+      });
+      setCart(loadedCart);
+
+      // Clear location state
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
+
+  const loadStockItems = async (storefrontIdOverride?: string) => {
+    const targetStorefrontId = storefrontIdOverride || selectedStorefrontId || DIRECT_SALE_STOREFRONT_ID;
+    try {
+      const response = await fetchStorefrontStock(
+        targetStorefrontId,
+        currentPage,
+        itemsPerPage,
+        selectedCategory === "All" ? undefined : selectedCategory,
+        search,
+      );
+      if (response.success && response.data) {
+        setAllStockItems(response.data);
+        if (response.pagination) {
+          setTotalPages(response.pagination.totalPages);
+          setTotalItems(response.pagination.totalItems);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading stock items:", error);
+      toast.error(t("pos.failedToLoadProducts"));
+    }
+  };
 
   const loadInitialData = async () => {
     setLoading(true);
     try {
       const sfResponse = await fetchStorefrontProfiles();
+      let firstId: string | null = null;
       if (sfResponse.success && sfResponse.data) {
         const activeStorefronts = sfResponse.data.filter(
           (sf) => sf.status === "active",
         );
         setStorefronts(activeStorefronts);
-        const DIRECT_SALE_STOREFRONT_ID = "6a28df12c5cf1644db3c35a1";
         const match = activeStorefronts.find(
           (sf) => sf._id === DIRECT_SALE_STOREFRONT_ID,
         );
         if (match) {
+          firstId = match._id;
           setSelectedStorefrontId(match._id);
         } else if (activeStorefronts.length > 0) {
+          firstId = activeStorefronts[0]._id;
           setSelectedStorefrontId(activeStorefronts[0]._id);
         }
       }
@@ -106,7 +194,7 @@ export const useDirectSale = () => {
         setCategories(catResponse.data);
       }
 
-      await loadStockItems();
+      await loadStockItems(firstId || undefined);
     } catch (error) {
       toast.error(t("directSale.failedToProcessSale"));
     } finally {
@@ -157,33 +245,14 @@ export const useDirectSale = () => {
   };
 
   useEffect(() => {
-    if (selectedStorefrontId) {
+    loadInitialData();
+  }, []);
+
+  useEffect(() => {
+    if (selectedStorefrontId && !loading) {
       loadStockItems();
     }
   }, [selectedStorefrontId, search, selectedCategory, currentPage]);
-
-  const loadStockItems = async () => {
-    const DIRECT_SALE_STOREFRONT_ID = "6a28df12c5cf1644db3c35a1";
-    try {
-      const response = await fetchStorefrontStock(
-        selectedStorefrontId || DIRECT_SALE_STOREFRONT_ID,
-        currentPage,
-        itemsPerPage,
-        selectedCategory === "All" ? undefined : selectedCategory,
-        search,
-      );
-      if (response.success && response.data) {
-        setAllStockItems(response.data);
-        if (response.pagination) {
-          setTotalPages(response.pagination.totalPages);
-          setTotalItems(response.pagination.totalItems);
-        }
-      }
-    } catch (error) {
-      console.error("Error loading stock items:", error);
-      toast.error(t("pos.failedToLoadProducts"));
-    }
-  };
 
   const handleRefresh = async () => {
     setLoading(true);
@@ -442,6 +511,11 @@ export const useDirectSale = () => {
 
         setSuccessOrderNumber(result.data?.orderNumber || `INV-${Date.now()}`);
         setShowSuccessModal(true);
+
+        if (convertingQuotationId && result.data?._id) {
+          await markQuotationAsConverted(convertingQuotationId, result.data._id);
+          setConvertingQuotationId(null);
+        }
 
         await loadStockItems();
       } else {

@@ -137,6 +137,9 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
         >
           <p className="font-bold mb-0.5">BILL TO:</p>
           <p>{receiptData.customerName || receiptData.creditPersonName}</p>
+          {receiptData.customerPhone && (
+            <p className="text-xs">Ph: {receiptData.customerPhone}</p>
+          )}
           {receiptData.customerAddress && (
             <p className="text-xs">{receiptData.customerAddress}</p>
           )}

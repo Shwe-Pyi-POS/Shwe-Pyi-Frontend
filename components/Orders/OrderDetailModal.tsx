@@ -93,6 +93,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       change: order.extraChange,
       note: order.note || undefined,
       customerName: order.customerName?.trim() || creditPersonName,
+      customerPhone: order.customerPhone?.trim() || undefined,
       customerAddress: order.customerAddress?.trim() || undefined,
       transportFee: order.transportFee || 0,
     };
@@ -138,6 +139,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
     order?.saleType === "direct-sale" || order?.storefrontId == null;
   const customerName = order?.customerName?.trim();
   const customerPhone = order?.customerPhone?.trim();
+  const customerAddress = order?.customerAddress?.trim();
   const hasCustomer = !!(customerName || customerPhone);
   const storefrontLabel =
     order?.storefrontId?.locationName ||
@@ -259,13 +261,12 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
 
               {order.paymentType === "credit" && order.dueDate && (
                 <div
-                  className={`mb-6 p-4 rounded-lg border text-sm ${
-                    getDueDateUrgency(order.dueDate.split("T")[0]) === "expired"
-                      ? "bg-red-50 border-red-200"
-                      : getDueDateUrgency(order.dueDate.split("T")[0]) === "near"
-                        ? "bg-amber-50 border-amber-200"
-                        : "bg-slate-50 border-slate-200"
-                  }`}
+                  className={`mb-6 p-4 rounded-lg border text-sm ${getDueDateUrgency(order.dueDate.split("T")[0]) === "expired"
+                    ? "bg-red-50 border-red-200"
+                    : getDueDateUrgency(order.dueDate.split("T")[0]) === "near"
+                      ? "bg-amber-50 border-amber-200"
+                      : "bg-slate-50 border-slate-200"
+                    }`}
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <Calendar className="w-4 h-4 shrink-0 text-slate-600" />
@@ -290,7 +291,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
               )}
 
               {/* Customer (direct sale) */}
-              {hasCustomer && (
+              {/* {hasCustomer && (
                 <div className="mb-6 bg-teal-50 p-4 rounded-lg border border-teal-200">
                   <div className="flex items-center gap-2 mb-2">
                     <User className="w-4 h-4 text-teal-600" />
@@ -304,8 +305,13 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                   {customerPhone && (
                     <p className="text-sm text-teal-700 mt-1">{customerPhone}</p>
                   )}
+                  {customerAddress?.trim() && (
+                    <p className="text-sm text-slate-600 mt-1">
+                      {customerAddress}
+                    </p>
+                  )}
                 </div>
-              )}
+              )} */}
 
               {order.note?.trim() && (
                 <div className="mb-6 text-sm text-slate-600 bg-slate-50 border border-slate-200 rounded-lg p-3">
@@ -340,7 +346,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                       <div className="flex items-center gap-2 mb-2">
                         <User className="w-4 h-4 text-orange-600" />
                         <p className="text-xs text-orange-600 font-medium">
-                          Credit Person
+                          Customer
                         </p>
                       </div>
                       <p className="font-bold text-orange-800">
@@ -348,6 +354,13 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                       </p>
                       <p className="text-xs text-orange-600 mt-1">
                         {order.creditPersonId.phone}
+                      </p>
+                      <p className="text-xs text-orange-600 mt-1">
+                        {customerAddress?.trim() && (
+                          <p className="text-sm text-slate-600 mt-1">
+                            {customerAddress}
+                          </p>
+                        )}
                       </p>
                     </div>
                   )}

@@ -34,6 +34,9 @@ import {
 } from "../components/Quotation/quotationUtils";
 import { getQuotationProducts } from "../services/Quotation/quotationTypes";
 import { ReportPagination } from "../components/PurchaseReport/ReportPagination";
+import { QuotationDetailModal } from "../components/Quotation/QuotationDetailModal";
+import { EditQuotationModal } from "../components/Quotation/EditQuotationModal";
+import { QuotationConvertModal } from "../components/Quotation/QuotationConvertModal";
 
 export const QuotationList: React.FC = () => {
   const { t } = useLanguage();
@@ -66,6 +69,10 @@ export const QuotationList: React.FC = () => {
   const [quotationToDelete, setQuotationToDelete] = useState<Quotation | null>(
     null,
   );
+  const [selectedQuotationId, setSelectedQuotationId] = useState<string | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [openConvertOnLoad, setOpenConvertOnLoad] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("adminData");
@@ -372,7 +379,11 @@ export const QuotationList: React.FC = () => {
                     return (
                       <tr
                         key={q._id}
-                        onClick={() => navigate(`/quotations/${q._id}`)}
+                        onClick={() => {
+                          setSelectedQuotationId(q._id);
+                          setOpenConvertOnLoad(false);
+                          setShowDetailModal(true);
+                        }}
                         className="hover:bg-slate-50 cursor-pointer transition-colors"
                       >
                         <td className="px-4 py-3 font-medium text-primary">
@@ -411,7 +422,11 @@ export const QuotationList: React.FC = () => {
                             <button
                               type="button"
                               title={t("common.view")}
-                              onClick={() => navigate(`/quotations/${q._id}`)}
+                              onClick={() => {
+                                setSelectedQuotationId(q._id);
+                                setOpenConvertOnLoad(false);
+                                setShowDetailModal(true);
+                              }}
                               className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600"
                             >
                               <Eye className="w-4 h-4" />
@@ -421,28 +436,31 @@ export const QuotationList: React.FC = () => {
                                 <button
                                   type="button"
                                   title={t("common.edit")}
-                                  onClick={() =>
-                                    navigate(`/quotations/${q._id}/edit`)
-                                  }
+                                  onClick={() => {
+                                    setSelectedQuotationId(q._id);
+                                    setShowEditModal(true);
+                                  }}
                                   className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600"
                                 >
                                   <Pencil className="w-4 h-4" />
                                 </button>
-                                <button
-                                  type="button"
-                                  title={t("quotation.convert.title")}
-                                  onClick={() =>
-                                    navigate(`/quotations/${q._id}`, {
-                                      state: { openConvert: true },
-                                    })
-                                  }
-                                  className="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-600"
-                                >
-                                  <ArrowRightLeft className="w-4 h-4" />
-                                </button>
+                                 <button
+                                   type="button"
+                                   title={t("quotation.convert.title")}
+                                   onClick={() => {
+                                     if (q.saleType === "direct-sale") {
+                                       navigate("/direct-sale", { state: { quotationToConvert: q } });
+                                     } else {
+                                       navigate("/pos", { state: { quotationToConvert: q } });
+                                     }
+                                   }}
+                                   className="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-600"
+                                 >
+                                   <ArrowRightLeft className="w-4 h-4" />
+                                 </button>
                               </>
                             )}
-                            {canDelete && q.status === "draft" && (
+                            {canDelete && q.status === "cancelled" && (
                               <button
                                 type="button"
                                 title={t("common.delete")}
@@ -573,6 +591,30 @@ export const QuotationList: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      <QuotationDetailModal
+        isOpen={showDetailModal}
+        quotationId={selectedQuotationId}
+        openConvertOnLoad={openConvertOnLoad}
+        onClose={() => {
+          setShowDetailModal(false);
+          setSelectedQuotationId(null);
+          setOpenConvertOnLoad(false);
+        }}
+        onQuotationUpdate={loadQuotations}
+      />
+
+      {showEditModal && (
+        <EditQuotationModal
+          isOpen={showEditModal}
+          quotationId={selectedQuotationId}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedQuotationId(null);
+          }}
+          onSuccess={loadQuotations}
+        />
       )}
     </div>
   );

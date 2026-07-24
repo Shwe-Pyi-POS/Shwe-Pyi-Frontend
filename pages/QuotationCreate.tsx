@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import { AddCustomerInline } from "../components/POS/AddCustomerInline";
+import { createCreditPersona } from "../services/Credit/createCreditPersona";
 import {
   Search,
   Plus,
@@ -15,8 +17,11 @@ import {
   FileText,
   ShoppingBag,
   List,
+  User,
+  UserPlus,
 } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
+import { fetchCreditPersonas, CreditPersona } from "../services/Credit/fetchCreditPersonas";
 import {
   fetchStorefrontStock,
   StorefrontStockItem,
@@ -56,6 +61,8 @@ export const QuotationCreate: React.FC = () => {
   const { id: editId } = useParams<{ id: string }>();
   const isEdit = Boolean(editId);
 
+  const DIRECT_SALE_STOREFRONT_ID = import.meta.env.VITE_DIRECT_SALE_STOREFRONT_ID || "6a28df12c5cf1644db3c35a1";
+
   const [storefronts, setStorefronts] = useState<StorefrontProfile[]>([]);
   const [selectedStorefrontId, setSelectedStorefrontId] = useState("");
   const [saleMode, setSaleMode] = useState<QuotationSaleType>("storefront");
@@ -80,10 +87,44 @@ export const QuotationCreate: React.FC = () => {
   const [note, setNote] = useState("");
   const [tax, setTax] = useState(0);
   const [discount, setDiscount] = useState(0);
+  const [creditPersonas, setCreditPersonas] = useState<CreditPersona[]>([]);
+  const [selectedCreditPersonId, setSelectedCreditPersonId] = useState("");
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showAddCustomerForm, setShowAddCustomerForm] = useState(false);
 
-  const loadStockItems = useCallback(async () => {
+  const handleAddCustomer = async (
+    name: string,
+    phone: string,
+    address: string,
+  ): Promise<boolean> => {
     try {
-      const sfId = saleMode === "storefront" ? selectedStorefrontId : undefined;
+      const result = await createCreditPersona({
+        name,
+        phone,
+        address: address || undefined,
+      });
+      if (result.success && result.data) {
+        setCreditPersonas((prev) => [...prev, result.data!]);
+        setSelectedCreditPersonId(result.data._id);
+        setCustomerName(result.data.name);
+        setCustomerPhone(result.data.phone || "");
+        toast.success("Customer added successfully");
+        return true;
+      } else {
+        toast.error(result.message || "Failed to add customer");
+        return false;
+      }
+    } catch (error) {
+      console.error("Error adding customer:", error);
+      toast.error("Failed to add customer");
+      return false;
+    }
+  };
+
+  const loadStockItems = useCallback(async (storefrontIdOverride?: string) => {
+    try {
+      const sfId = storefrontIdOverride || (saleMode === "direct-sale" ? DIRECT_SALE_STOREFRONT_ID : selectedStorefrontId);
       const response = await fetchStorefrontStock(
         sfId || undefined,
         currentPage,
@@ -125,17 +166,25 @@ export const QuotationCreate: React.FC = () => {
     const init = async () => {
       setLoading(true);
       try {
+        let firstId: string | null = null;
         const sfResponse = await fetchStorefrontProfiles();
         if (sfResponse.success && sfResponse.data) {
-          const active = sfResponse.data.filter((sf) => sf.status === "active");
+          const active = sfResponse.data.filter((sf) => sf.status === "active" && sf._id !== DIRECT_SALE_STOREFRONT_ID);
           setStorefronts(active);
           if (active.length > 0) {
+            firstId = active[0]._id;
             setSelectedStorefrontId((prev) => prev || active[0]._id);
           }
         }
         const catResponse = await fetchCategories();
         if (catResponse.success && catResponse.data) {
           setCategories(catResponse.data);
+        }
+
+        const cpResponse = await fetchCreditPersonas();
+        if (cpResponse.success && cpResponse.data) {
+          const activePersonas = cpResponse.data.filter((p) => !p.blacklist);
+          setCreditPersonas(activePersonas);
         }
 
         if (isEdit && editId) {
@@ -156,7 +205,15 @@ export const QuotationCreate: React.FC = () => {
             typeof q.storefrontId === "object"
               ? q.storefrontId?._id
               : (q.storefrontId as string) || "";
-          if (sf) setSelectedStorefrontId(sf);
+          if (sf) {
+            firstId = sf;
+            setSelectedStorefrontId(sf);
+          }
+          const cpId =
+            typeof q.creditPersonId === "object"
+              ? q.creditPersonId?._id
+              : (q.creditPersonId as string) || "";
+          if (cpId) setSelectedCreditPersonId(cpId);
           setCustomerName(q.customerName || "");
           setCustomerPhone(q.customerPhone || "");
           setNote(q.note || "");
@@ -221,7 +278,7 @@ export const QuotationCreate: React.FC = () => {
           );
         }
 
-        // await loadStockItems();
+        await loadStockItems(firstId || undefined);
       } catch {
         toast.error(t("pos.failedToLoadData"));
       } finally {
@@ -230,13 +287,13 @@ export const QuotationCreate: React.FC = () => {
     };
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editId, isEdit]);
+  }, [editId, isEdit, loadStockItems]);
 
   useEffect(() => {
-    if (selectedStorefrontId) {
+    if (selectedStorefrontId && !loading) {
       loadStockItems();
     }
-  }, [selectedStorefrontId, search, selectedCategory, currentPage, saleMode]);
+  }, [selectedStorefrontId, search, selectedCategory, currentPage, saleMode, loading, loadStockItems]);
 
   const filteredProducts = allStockItems.filter(
     (item) => item.inventoryId?._id !== HIDDEN_PRODUCT_ID,
@@ -302,7 +359,7 @@ export const QuotationCreate: React.FC = () => {
     }
     try {
       const response = await fetchStorefrontStock(
-        saleMode === "storefront" ? selectedStorefrontId : undefined,
+        saleMode === "direct-sale" ? DIRECT_SALE_STOREFRONT_ID : selectedStorefrontId,
         1,
         1,
         undefined,
@@ -359,7 +416,8 @@ export const QuotationCreate: React.FC = () => {
       const payload = {
         saleType: saleMode,
         storefrontId:
-          saleMode === "storefront" ? selectedStorefrontId : undefined,
+          saleMode === "direct-sale" ? DIRECT_SALE_STOREFRONT_ID : selectedStorefrontId,
+        creditPersonId: selectedCreditPersonId || undefined,
         customerName: customerName.trim() || undefined,
         customerPhone: customerPhone.trim() || undefined,
         note: note.trim() || undefined,
@@ -386,17 +444,18 @@ export const QuotationCreate: React.FC = () => {
           const storefrontLabel =
             saleMode === "storefront"
               ? storefronts.find((sf) => sf._id === selectedStorefrontId)
-                  ?.locationName || ""
+                ?.locationName || ""
               : t("quotation.saleTypeDirectSale");
-          const billTo = customerName.trim()
-            ? `${customerName.trim()}${customerPhone.trim() ? ` · ${customerPhone.trim()}` : ""}`
-            : storefrontLabel;
+          const cpObj = creditPersonas.find((c) => c._id === selectedCreditPersonId);
+          const customerNameVal = cpObj ? cpObj.name : customerName.trim();
+          const customerPhoneVal = cpObj ? cpObj.phone : customerPhone.trim();
+          const customerAddressVal = cpObj ? cpObj.address : undefined;
 
           const receiptData: VoucherReceiptData = {
             documentType: "quotation",
             date: new Date().toISOString(),
             invoiceNumber: quotationNumber,
-            storefrontName: billTo,
+            storefrontName: customerNameVal || storefrontLabel || "Walk-in Customer",
             items: cart.map((i) => ({
               name: i.stockItem.inventoryId.productName,
               code: i.stockItem.inventoryId.productCode,
@@ -411,6 +470,9 @@ export const QuotationCreate: React.FC = () => {
             total: finalAmount,
             paymentMethod: t("quotation.status.draft"),
             note: note.trim() || undefined,
+            customerName: customerNameVal || undefined,
+            customerPhone: customerPhoneVal || undefined,
+            customerAddress: customerAddressVal || undefined,
           };
 
           localStorage.setItem(
@@ -487,11 +549,10 @@ export const QuotationCreate: React.FC = () => {
             <button
               type="button"
               onClick={() => handleSaleModeChange("storefront")}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${
-                saleMode === "storefront"
-                  ? "bg-primary text-white border-primary"
-                  : "bg-white border-gray-200 hover:border-primary"
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${saleMode === "storefront"
+                ? "bg-primary text-white border-primary"
+                : "bg-white border-gray-200 hover:border-primary"
+                }`}
             >
               <Store className="w-4 h-4" />
               {t("quotation.saleTypeStorefront")}
@@ -499,11 +560,10 @@ export const QuotationCreate: React.FC = () => {
             <button
               type="button"
               onClick={() => handleSaleModeChange("direct-sale")}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${
-                saleMode === "direct-sale"
-                  ? "bg-primary text-white border-primary"
-                  : "bg-white border-gray-200 hover:border-primary"
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${saleMode === "direct-sale"
+                ? "bg-primary text-white border-primary"
+                : "bg-white border-gray-200 hover:border-primary"
+                }`}
             >
               <ShoppingBag className="w-4 h-4" />
               {t("quotation.saleTypeDirectSale")}
@@ -585,11 +645,10 @@ export const QuotationCreate: React.FC = () => {
                               handleStorefrontChange(sf._id);
                               setShowStorefrontMenu(false);
                             }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 ${
-                              sf._id === selectedStorefrontId
-                                ? "bg-primary/15 border-l-4 border-primary"
-                                : ""
-                            }`}
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 ${sf._id === selectedStorefrontId
+                              ? "bg-primary/15 border-l-4 border-primary"
+                              : ""
+                              }`}
                           >
                             <Store className="w-4 h-4 shrink-0" />
                             <div className="min-w-0">
@@ -695,7 +754,7 @@ export const QuotationCreate: React.FC = () => {
             {saleMode === "direct-sale"
               ? t("quotation.saleTypeDirectSale")
               : storefronts.find((sf) => sf._id === selectedStorefrontId)
-                  ?.locationName}
+                ?.locationName}
           </p>
         </div>
 
@@ -820,28 +879,143 @@ export const QuotationCreate: React.FC = () => {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("quotation.customerName")} ({t("common.optional")})
-                </label>
-                <input
-                  type="text"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 text-sm"
-                />
+              <div className="flex gap-2 items-start">
+                <div className="relative flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t("pos.selectCustomer") || "Select Customer"} ({t("common.optional")})
+                  </label>
+                  <div className="relative">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder={
+                          selectedCreditPersonId
+                            ? creditPersonas.find((p) => p._id === selectedCreditPersonId)?.name
+                            : "Search customer by name or phone..."
+                        }
+                        value={showDropdown ? customerSearch : (selectedCreditPersonId ? creditPersonas.find((p) => p._id === selectedCreditPersonId)?.name : "")}
+                        onFocus={() => setShowDropdown(true)}
+                        onChange={(e) => {
+                          setCustomerSearch(e.target.value);
+                          setShowDropdown(true);
+                        }}
+                        className="w-full pl-9 pr-8 py-2 border border-primary-200 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-primary/5 text-gray-800"
+                      />
+                      {selectedCreditPersonId && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedCreditPersonId("");
+                            setCustomerSearch("");
+                            setCustomerName("");
+                            setCustomerPhone("");
+                          }}
+                          className="absolute right-3 top-2 text-gray-400 hover:text-gray-600"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                    {showDropdown && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setShowDropdown(false)} />
+                        <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                          {creditPersonas
+                            .filter((p) =>
+                              p.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
+                              (p.phone && p.phone.includes(customerSearch))
+                            )
+                            .slice(0, 10)
+                            .map((persona) => (
+                              <div
+                                key={persona._id}
+                                onClick={() => {
+                                  setSelectedCreditPersonId(persona._id);
+                                  setCustomerName(persona.name);
+                                  setCustomerPhone(persona.phone || "");
+                                  setCustomerSearch("");
+                                  setShowDropdown(false);
+                                }}
+                                className={`px-3 py-2 text-sm cursor-pointer hover:bg-primary/5 flex items-center gap-2 ${persona._id === selectedCreditPersonId ? "bg-primary/10 text-primary font-medium" : "text-gray-700"
+                                  }`}
+                              >
+                                <User className="w-4 h-4 text-gray-400 shrink-0" />
+                                <div>
+                                  <p className="font-medium">{persona.name}</p>
+                                  {persona.phone && <p className="text-xs text-gray-500">{persona.phone}</p>}
+                                </div>
+                              </div>
+                            ))}
+                          {creditPersonas.filter((p) =>
+                            p.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
+                            (p.phone && p.phone.includes(customerSearch))
+                          ).length === 0 && (
+                              <div className="px-3 py-2 text-sm text-gray-400">
+                                No customers found
+                              </div>
+                            )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAddCustomerForm(!showAddCustomerForm)}
+                  className={`p-2.5 mt-6 border rounded-lg flex items-center justify-center transition-colors text-sm font-medium shrink-0 ${showAddCustomerForm
+                    ? "bg-primary text-white border-primary hover:bg-primary-600"
+                    : "bg-white text-primary border-primary/20 hover:bg-primary/5"
+                    }`}
+                  title="Add New Customer"
+                >
+                  <UserPlus className="w-5 h-5" />
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("quotation.customerPhone")} ({t("common.optional")})
-                </label>
-                <input
-                  type="text"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 text-sm"
-                />
-              </div>
+              {showAddCustomerForm && (
+                <div className="mt-2">
+                  <AddCustomerInline
+                    onSave={async (name, phone, address) => {
+                      const success = await handleAddCustomer(name, phone, address);
+                      if (success) {
+                        setShowAddCustomerForm(false);
+                        setCustomerSearch("");
+                      }
+                      return success;
+                    }}
+                    onCancel={() => {
+                      setShowAddCustomerForm(false);
+                      setCustomerSearch("");
+                    }}
+                  />
+                </div>
+              )}
+              {selectedCreditPersonId && (
+                (() => {
+                  const persona = creditPersonas.find((p) => p._id === selectedCreditPersonId);
+                  if (!persona) return null;
+                  return (
+                    <div className="rounded-lg bg-primary/5 border border-primary/10 p-3 space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">{t("quotation.customerName") || "Name"}:</span>
+                        <span className="font-semibold text-primary">{persona.name}</span>
+                      </div>
+                      {persona.phone && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">{t("quotation.customerPhone") || "Phone"}:</span>
+                          <span className="font-medium text-gray-800">{persona.phone}</span>
+                        </div>
+                      )}
+                      {persona.address && (
+                        <div className="flex justify-between border-t border-gray-100 pt-1 mt-1">
+                          <span className="text-gray-500 text-xs">{t("common.address") || "Address"}:</span>
+                          <span className="font-medium text-gray-700 text-xs mt-0.5 whitespace-pre-wrap">{persona.address}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t("common.notes")} ({t("common.optional")})
@@ -853,7 +1027,7 @@ export const QuotationCreate: React.FC = () => {
                   className="w-full border rounded-lg px-3 py-2 text-sm resize-none"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              {/* <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {t("common.tax")} (MMK)
@@ -878,7 +1052,7 @@ export const QuotationCreate: React.FC = () => {
                     className="w-full border rounded-lg px-3 py-2 text-sm"
                   />
                 </div>
-              </div>
+              </div> */}
               <div className="rounded-lg bg-gray-50 p-3 space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span>{t("common.subtotal")}</span>

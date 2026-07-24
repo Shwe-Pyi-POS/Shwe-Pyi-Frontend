@@ -57,9 +57,20 @@ export const QuotationConvertModal: React.FC<QuotationConvertModalProps> = ({
     setFinalAmount(quotation.finalAmount || 0);
     setPaidAmount(quotation.finalAmount || 0);
     setManualFinal(false);
-    setPaymentType("paid");
+
+    const qCpId = typeof quotation.creditPersonId === "object"
+      ? quotation.creditPersonId?._id
+      : quotation.creditPersonId;
+
+    if (qCpId) {
+      setPaymentType("credit");
+      setCreditPersonId(qCpId);
+      setPaidAmount(0);
+    } else {
+      setPaymentType("paid");
+      setCreditPersonId("");
+    }
     setPaymentMethod("cash");
-    setCreditPersonId("");
   }, [open, quotation]);
 
   useEffect(() => {
@@ -106,6 +117,7 @@ export const QuotationConvertModal: React.FC<QuotationConvertModalProps> = ({
 
     setProcessing(true);
     try {
+      const selectedPersona = creditPersonas.find((p) => p._id === creditPersonId);
       const storefrontId =
         typeof quotation.storefrontId === "object"
           ? quotation.storefrontId?._id
@@ -113,18 +125,19 @@ export const QuotationConvertModal: React.FC<QuotationConvertModalProps> = ({
 
       const orderPayload: Parameters<typeof createOrder>[0] = {
         saleType: quotation.saleType,
-        customerName: quotation.customerName,
-        customerPhone: quotation.customerPhone,
+        customerName: selectedPersona?.name || quotation.customerName,
+        customerPhone: selectedPersona?.phone || quotation.customerPhone,
+        customerAddress: selectedPersona?.address || undefined,
         note: quotation.note,
         ordersProducts: orderProducts,
         subTotal,
         tax,
         discount,
         finalAmount,
-        paidAmount: paymentType === "credit" ? paidAmount : paidAmount,
+        paidAmount: paymentType === "credit" ? 0 : paidAmount,
         paymentType,
         paymentMethod,
-        creditPersonId: paymentType === "credit" ? creditPersonId : undefined,
+        creditPersonId: creditPersonId || undefined,
       };
 
       if (quotation.saleType === "storefront" && storefrontId) {

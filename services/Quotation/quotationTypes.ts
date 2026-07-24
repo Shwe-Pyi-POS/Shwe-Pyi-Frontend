@@ -48,6 +48,7 @@ export interface Quotation {
   quotationNumber: string;
   saleType: QuotationSaleType;
   storefrontId?: QuotationStorefrontRef | string | null;
+  creditPersonId?: string | { _id: string; name: string; phone?: string; address?: string } | null;
   customerName?: string;
   customerPhone?: string;
   note?: string;
@@ -80,6 +81,7 @@ export interface QuotationPagination {
 export interface CreateQuotationPayload {
   saleType: QuotationSaleType;
   storefrontId?: string;
+  creditPersonId?: string | null;
   customerName?: string;
   customerPhone?: string;
   note?: string;
@@ -93,6 +95,7 @@ export interface CreateQuotationPayload {
 export interface UpdateQuotationPayload {
   customerName?: string;
   customerPhone?: string;
+  creditPersonId?: string | null;
   note?: string;
   saleType?: QuotationSaleType;
   storefrontId?: string;

@@ -28,28 +28,28 @@ export const AddCustomerInline: React.FC<AddCustomerInlineProps> = ({
   };
 
   return (
-    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 space-y-2">
+    <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-2">
       <div className="flex items-center gap-2 mb-2">
-        <UserPlus className="w-4 h-4 text-orange-600" />
-        <p className="text-sm font-medium text-orange-800">Add New Customer</p>
+        <UserPlus className="w-4 h-4 text-primary" />
+        <p className="text-sm font-medium text-primary-800">Add New Customer</p>
       </div>
       <input
         type="text"
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none"
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="Name *"
       />
       <input
         type="text"
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none"
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
         placeholder="Phone *"
       />
       <input
         type="text"
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none"
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
         value={address}
         onChange={(e) => setAddress(e.target.value)}
         placeholder="Address (optional)"
@@ -58,7 +58,7 @@ export const AddCustomerInline: React.FC<AddCustomerInlineProps> = ({
         <button
           onClick={handleSave}
           disabled={!name.trim() || !phone.trim() || saving}
-          className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+          className="flex-1 bg-primary hover:bg-primary-600 text-white py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
         >
           {saving ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
