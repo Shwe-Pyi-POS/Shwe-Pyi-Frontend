@@ -15,6 +15,18 @@ export const Login: React.FC = () => {
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (token) {
+      const storedAdmin = localStorage.getItem("adminData");
+      if (storedAdmin) {
+        try {
+          const admin = JSON.parse(storedAdmin);
+          if (admin.role === "inventory-manager") {
+            navigate("/inventory", { replace: true });
+            return;
+          }
+        } catch (e) {
+          console.error("Error parsing admin data in redirect:", e);
+        }
+      }
       navigate("/pos", { replace: true });
     }
   }, [navigate]);
@@ -52,8 +64,12 @@ export const Login: React.FC = () => {
           t("login.welcomeBack").replace("{name}", response.data.admin.name),
         );
 
-        // Redirect to POS page
-        navigate("/pos");
+        // Redirect based on role
+        if (response.data.admin.role === "inventory-manager") {
+          navigate("/inventory");
+        } else {
+          navigate("/pos");
+        }
       } else {
         toast.error(response.message || t("login.loginFailed"));
       }

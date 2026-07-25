@@ -85,16 +85,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         label: t("sidebar.groupSales"),
         icon: ShoppingCart,
         children: [
-          { path: "/pos", label: t("sidebar.checkout"), icon: ShoppingCart },
+          {
+            path: "/pos",
+            label: t("sidebar.checkout"),
+            icon: ShoppingCart,
+            roles: ["admin", "owner", "cashier"],
+          },
           {
             path: "/direct-sale",
             label: t("sidebar.directSale"),
             icon: ShoppingBag,
+            roles: ["admin", "owner", "cashier"],
           },
           {
             path: "/quotations/create",
             label: t("sidebar.createQuotation"),
             icon: FileText,
+            roles: ["admin", "owner", "cashier"],
           },
         ],
       },
@@ -103,21 +110,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         label: t("sidebar.groupOrders"),
         icon: Receipt,
         children: [
-          { path: "/orders", label: t("sidebar.orders"), icon: Receipt },
+          {
+            path: "/orders",
+            label: t("sidebar.orders"),
+            icon: Receipt,
+            roles: ["admin", "owner", "cashier"],
+          },
           {
             path: "/direct-sale-orders",
             label: t("sidebar.directSaleOrders"),
             icon: ClipboardList,
+            roles: ["admin", "owner", "cashier"],
           },
           {
             path: "/credit-orders",
             label: t("sidebar.creditOrder"),
             icon: CreditCard,
+            roles: ["admin", "owner", "cashier"],
           },
           {
             path: "/quotations",
             label: t("sidebar.quotations"),
             icon: FileText,
+            roles: ["admin", "owner", "cashier"],
           },
         ],
       },
@@ -130,19 +145,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             path: "/inventory",
             label: t("sidebar.inventory"),
             icon: Package,
-            roles: ["admin", "owner"],
+            roles: ["admin", "owner", "inventory-manager"],
           },
           {
             path: "/warehouse",
             label: t("sidebar.warehouse"),
             icon: Truck,
-            roles: ["admin", "owner"],
+            roles: ["admin", "owner", "inventory-manager"],
           },
           {
             path: "/storefront",
             label: t("sidebar.storefront"),
             icon: Store,
-            roles: ["admin", "owner"],
+            roles: ["admin", "owner", "inventory-manager"],
           },
         ],
       },
@@ -390,20 +405,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <p className="text-xs text-white/60 capitalize">{userRole}</p>
             </div>
           </div>
-          <NavLink
-            to="/settings"
-            id="profile-tab"
-            onClick={onClose}
-            className={({ isActive }) =>
-              `flex items-center gap-2 text-xs px-3 py-2 rounded-lg transition-colors mb-2 ${
-                isActive
-                  ? "bg-white text-primary"
-                  : "text-white/70 hover:text-white hover:bg-white/10"
-              }`
-            }
-          >
-            <Settings className="w-4 h-4" /> {t("sidebar.settings")}
-          </NavLink>
+          {userRole === "owner" && (
+            <NavLink
+              to="/settings"
+              id="profile-tab"
+              onClick={onClose}
+              className={({ isActive }) =>
+                `flex items-center gap-2 text-xs px-3 py-2 rounded-lg transition-colors mb-2 ${
+                  isActive
+                    ? "bg-white text-primary"
+                    : "text-white/70 hover:text-white hover:bg-white/10"
+                }`
+              }
+            >
+              <Settings className="w-4 h-4" /> {t("sidebar.settings")}
+            </NavLink>
+          )}
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-2 text-xs px-3 py-2 rounded-lg transition-colors text-white/80 hover:text-white hover:bg-red-500/20"
