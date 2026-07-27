@@ -103,6 +103,9 @@ export const Inventory: React.FC = () => {
     status: "active",
     tags: [],
     note: "",
+    weightPerPiece: 0,
+    buyingPricePerKg: 0,
+    sellingPricePerKg: 0,
   });
 
   // Map API product to local Product type
@@ -223,6 +226,9 @@ export const Inventory: React.FC = () => {
       status: "active",
       tags: [],
       note: "",
+      weightPerPiece: 0,
+      buyingPricePerKg: 0,
+      sellingPricePerKg: 0,
     });
     setError(null);
   };
@@ -314,6 +320,9 @@ export const Inventory: React.FC = () => {
           sellingPrice: formData.sellingPrice,
           unitOfMeasure: formData.unitOfMeasure.trim(),
           uomConversions: formData.uomConversions,
+          weightPerPiece: formData.weightPerPiece,
+          buyingPricePerKg: formData.buyingPricePerKg,
+          sellingPricePerKg: formData.sellingPricePerKg,
         };
 
         // Add optional fields only if they have values
@@ -373,6 +382,9 @@ export const Inventory: React.FC = () => {
         sellingPrice: formData.sellingPrice,
         unitOfMeasure: formData.unitOfMeasure.trim(),
         uomConversions: formData.uomConversions,
+        weightPerPiece: formData.weightPerPiece,
+        buyingPricePerKg: formData.buyingPricePerKg,
+        sellingPricePerKg: formData.sellingPricePerKg,
       };
 
       // Add SKU only if it has a value, otherwise provide a default
@@ -445,6 +457,9 @@ export const Inventory: React.FC = () => {
       status: apiProduct?.status || "active",
       tags: apiProduct?.tags || [],
       note: apiProduct?.note || "",
+      weightPerPiece: apiProduct?.weightPerPiece || 0,
+      buyingPricePerKg: apiProduct?.buyingPricePerKg || 0,
+      sellingPricePerKg: apiProduct?.sellingPricePerKg || 0,
     });
 
     setIsModalOpen(true);

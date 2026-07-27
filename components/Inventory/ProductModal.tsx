@@ -39,6 +39,9 @@ export interface ProductFormData {
   status?: string;
   tags?: string[];
   note?: string;
+  weightPerPiece?: number;
+  buyingPricePerKg?: number;
+  sellingPricePerKg?: number;
 }
 
 export interface ApiProduct {
@@ -65,6 +68,9 @@ export interface ApiProduct {
   note?: string;
   stockWarehouse?: number;
   stockShop?: number;
+  weightPerPiece?: number;
+  buyingPricePerKg?: number;
+  sellingPricePerKg?: number;
 }
 
 interface ProductModalProps {
@@ -345,6 +351,71 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             />
           </div> */}
 
+          {formData.category?.toLowerCase() === "hollow" && (
+            <>
+              <div>
+                <label className="block text-xs font-bold text-slate-500">
+                  Weight per Piece (Kg) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.001"
+                  min="0"
+                  className="w-full border rounded p-2 bg-amber-50/50"
+                  value={formData.weightPerPiece || 0}
+                  onChange={(e) => {
+                    const weight = Number(e.target.value);
+                    updateFormData({
+                      weightPerPiece: weight,
+                      buyingPrice: weight * (formData.buyingPricePerKg || 0),
+                      sellingPrice: weight * (formData.sellingPricePerKg || 0),
+                    });
+                  }}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500">
+                  Buying Price per Kg <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  className="w-full border rounded p-2 bg-amber-50/50"
+                  value={formData.buyingPricePerKg || 0}
+                  onChange={(e) => {
+                    const pricePerKg = Number(e.target.value);
+                    updateFormData({
+                      buyingPricePerKg: pricePerKg,
+                      buyingPrice: (formData.weightPerPiece || 0) * pricePerKg,
+                    });
+                  }}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500">
+                  Selling Price per Kg <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  className="w-full border rounded p-2 bg-amber-50/50"
+                  value={formData.sellingPricePerKg || 0}
+                  onChange={(e) => {
+                    const pricePerKg = Number(e.target.value);
+                    updateFormData({
+                      sellingPricePerKg: pricePerKg,
+                      sellingPrice: (formData.weightPerPiece || 0) * pricePerKg,
+                    });
+                  }}
+                />
+              </div>
+            </>
+          )}
+
           <div>
             <label className="block text-xs font-bold text-slate-500">
               {t("inventory.buyingPrice")}{" "}
@@ -354,7 +425,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               type="number"
               step="0.01"
               min="0"
-              className="w-full border rounded p-2"
+              className={`w-full border rounded p-2 ${
+                formData.category?.toLowerCase() === "hollow" ? "bg-slate-100 cursor-not-allowed" : ""
+              }`}
+              disabled={formData.category?.toLowerCase() === "hollow"}
               value={formData.buyingPrice}
               onChange={(e) =>
                 updateFormData({ buyingPrice: Number(e.target.value) })
@@ -371,7 +445,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               type="number"
               step="0.01"
               min="0"
-              className="w-full border rounded p-2"
+              className={`w-full border rounded p-2 ${
+                formData.category?.toLowerCase() === "hollow" ? "bg-slate-100 cursor-not-allowed" : ""
+              }`}
+              disabled={formData.category?.toLowerCase() === "hollow"}
               value={formData.sellingPrice}
               onChange={(e) =>
                 updateFormData({ sellingPrice: Number(e.target.value) })

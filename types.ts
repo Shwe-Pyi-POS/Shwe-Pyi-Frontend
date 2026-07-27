@@ -37,6 +37,9 @@ export interface Product {
   sellingPrice: number;
   lowStockThreshold: number;
   status?: "active" | "inactive";
+  weightPerPiece?: number;
+  buyingPricePerKg?: number;
+  sellingPricePerKg?: number;
 }
 
 export interface CartItem extends Product {
