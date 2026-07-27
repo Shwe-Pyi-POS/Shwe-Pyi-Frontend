@@ -26,8 +26,9 @@ import {
   ProductDetail,
 } from "../services/Inventory/fetchProductById";
 import { WarehouseProfile } from "../types";
-import { Building2, X, Loader2, Store, FileUp } from "lucide-react";
+import { Building2, X, Loader2, Store, FileUp, DollarSign } from "lucide-react";
 import { SearchInput } from "../components/Inventory/SearchInput";
+import { bulkUpdateHollowPrices } from "../services/Inventory/bulkUpdateHollowPrices";
 import {
   importExcel,
   ImportExcelResponse,
@@ -81,6 +82,12 @@ export const Inventory: React.FC = () => {
   );
   const [isImportResultModalOpen, setIsImportResultModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Bulk price update states
+  const [isBulkPriceModalOpen, setIsBulkPriceModalOpen] = useState(false);
+  const [bulkBuyingPricePerKg, setBulkBuyingPricePerKg] = useState<number | "">("");
+  const [bulkSellingPricePerKg, setBulkSellingPricePerKg] = useState<number | "">("");
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
   // Form State - API structure
   const [formData, setFormData] = useState<ProductFormData>({
@@ -202,6 +209,35 @@ export const Inventory: React.FC = () => {
       }
     } catch (error) {
       console.error("Error loading storefronts:", error);
+    }
+  };
+
+  const handleBulkPriceUpdate = async () => {
+    if (bulkBuyingPricePerKg === "" && bulkSellingPricePerKg === "") {
+      toast.error("Please enter at least one price to update");
+      return;
+    }
+
+    setIsBulkUpdating(true);
+    try {
+      const payload: any = {};
+      if (bulkBuyingPricePerKg !== "") payload.buyingPricePerKg = Number(bulkBuyingPricePerKg);
+      if (bulkSellingPricePerKg !== "") payload.sellingPricePerKg = Number(bulkSellingPricePerKg);
+
+      const response = await bulkUpdateHollowPrices(payload);
+      if (response.success) {
+        toast.success(response.message || "Bulk prices updated successfully");
+        setIsBulkPriceModalOpen(false);
+        setBulkBuyingPricePerKg("");
+        setBulkSellingPricePerKg("");
+        await loadProducts();
+      } else {
+        toast.error(response.message || "Failed to bulk update prices");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to bulk update prices");
+    } finally {
+      setIsBulkUpdating(false);
     }
   };
 
@@ -806,6 +842,14 @@ export const Inventory: React.FC = () => {
               className="hidden"
             />
             <button
+              onClick={() => setIsBulkPriceModalOpen(true)}
+              className="bg-amber-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-amber-700 flex items-center gap-2 text-sm sm:text-base"
+            >
+              <DollarSign className="w-4 h-4" />
+              <span className="hidden sm:inline">Bulk Price Update</span>
+              <span className="sm:hidden">Bulk</span>
+            </button>
+            <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isImporting}
               className="inventory-import-excel-btn bg-emerald-600 text-white px-3 py-2 sm:px-4 rounded hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2 text-sm sm:text-base"
@@ -927,6 +971,85 @@ export const Inventory: React.FC = () => {
         result={importResult}
         onClose={() => setIsImportResultModalOpen(false)}
       />
+
+      {/* Bulk Price Update Modal */}
+      {isBulkPriceModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b flex justify-between items-center">
+              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-amber-600" />
+                Bulk Steel Price Update
+              </h2>
+              <button
+                onClick={() => setIsBulkPriceModalOpen(false)}
+                disabled={isBulkUpdating}
+                className="text-slate-400 hover:text-slate-600 p-1 disabled:opacity-50"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+                <p className="text-xs text-amber-800">
+                  This action will update the price per Kg for <strong>all</strong> products under the <strong>hollow</strong> category and recalculate their buying and selling prices automatically based on their individual weights.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  New Buying Price per Kg (MMK)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Enter new buying price per Kg"
+                  className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-amber-500"
+                  value={bulkBuyingPricePerKg}
+                  onChange={(e) => setBulkBuyingPricePerKg(e.target.value === "" ? "" : Number(e.target.value))}
+                  disabled={isBulkUpdating}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  New Selling Price per Kg (MMK)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Enter new selling price per Kg"
+                  className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-amber-500"
+                  value={bulkSellingPricePerKg}
+                  onChange={(e) => setBulkSellingPricePerKg(e.target.value === "" ? "" : Number(e.target.value))}
+                  disabled={isBulkUpdating}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => setIsBulkPriceModalOpen(false)}
+                  disabled={isBulkUpdating}
+                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBulkPriceUpdate}
+                  disabled={isBulkUpdating}
+                  className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isBulkUpdating && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Update Prices
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Transfer to Warehouse Modal */}
       {isTransferModalOpen && (
