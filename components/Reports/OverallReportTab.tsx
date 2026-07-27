@@ -18,6 +18,8 @@ interface OverallReportTabProps {
   allStorefrontsReport: SaleReportResponse | null;
   selectedStorefront: string;
   loading: boolean;
+  buyingCost: number;
+  totalExpense: number;
 }
 
 export const OverallReportTab: React.FC<OverallReportTabProps> = ({
@@ -26,6 +28,8 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
   allStorefrontsReport,
   selectedStorefront,
   loading,
+  buyingCost,
+  totalExpense,
 }) => {
   // Determine which reports to show in the breakdown table
   const reportsToShow =
@@ -39,6 +43,8 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
               (report.data.storefront as unknown as { id?: string } | null)
                 ?.id === selectedStorefront),
         );
+
+  const totalProfit = displayReport.finalAmount - (buyingCost + totalExpense);
 
   if (loading) {
     return (
@@ -87,6 +93,36 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
           </p>
           <p className="text-lg sm:text-2xl font-bold text-blue-600">
             {displayReport.orderCount}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow border border-amber-100">
+          <p className="text-slate-500 text-xs uppercase font-bold">
+            Buying Cost
+          </p>
+          <p className="text-lg sm:text-2xl font-bold text-amber-600">
+            {buyingCost.toLocaleString()}{" "}
+            <span className="hidden sm:inline">MMK</span>
+          </p>
+        </div>
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow border border-red-100">
+          <p className="text-slate-500 text-xs uppercase font-bold">
+            Total Expense
+          </p>
+          <p className="text-lg sm:text-2xl font-bold text-red-600">
+            {totalExpense.toLocaleString()}{" "}
+            <span className="hidden sm:inline">MMK</span>
+          </p>
+        </div>
+        <div className={`bg-white p-3 sm:p-4 rounded-xl shadow border ${totalProfit >= 0 ? 'border-emerald-200' : 'border-rose-200'}`}>
+          <p className="text-slate-500 text-xs uppercase font-bold">
+            Total Profit
+          </p>
+          <p className={`text-lg sm:text-2xl font-bold ${totalProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+            {totalProfit.toLocaleString()}{" "}
+            <span className="hidden sm:inline">MMK</span>
           </p>
         </div>
       </div>

@@ -33,6 +33,7 @@ import {
   fetchStorefrontStock,
   StorefrontStockItem,
 } from "../services/Storefront/fetchStorefrontStock";
+import { fetchExpenses } from "../services/Expense/fetchExpenses";
 import {
   fetchFOCOrders,
   fetchAllStorefrontsFOCOrders,
@@ -92,6 +93,9 @@ export const Reports: React.FC = () => {
     StorefrontStockItem[]
   >([]);
   const [loading, setLoading] = useState(true);
+  const [buyingCost, setBuyingCost] = useState<number>(0);
+  const [totalExpense, setTotalExpense] = useState<number>(0);
+  const [loadingProfit, setLoadingProfit] = useState(false);
   const [loadingPaidOrders, setLoadingPaidOrders] = useState(false);
   const [loadingCreditOrders, setLoadingCreditOrders] = useState(false);
   const [loadingStatistics, setLoadingStatistics] = useState(false);
@@ -135,6 +139,7 @@ export const Reports: React.FC = () => {
         loadFOCOrders();
       } else if (activeTab === "overall") {
         loadReports();
+        loadOverallProfitDetails();
       }
     } else {
       // Load all storefronts reports when "all" is selected
@@ -150,6 +155,7 @@ export const Reports: React.FC = () => {
         loadAllStorefrontsFOCOrders();
       } else if (activeTab === "overall") {
         loadReports();
+        loadOverallProfitDetails();
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -209,6 +215,52 @@ export const Reports: React.FC = () => {
       toast.error("Failed to load reports");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadOverallProfitDetails = async () => {
+    setLoadingProfit(true);
+    try {
+      const startDateStr = formatDateForAPI(startDate);
+      const endDateStr = formatDateForAPI(endDate);
+
+      // 1. Fetch buying cost
+      let buyingCostVal = 0;
+      if (selectedStorefront === "all") {
+        const statsResponse = await fetchAllStorefrontsProductSalesStatistics(
+          startDateStr,
+          endDateStr,
+          reportSaleType,
+        );
+        if (statsResponse.success && statsResponse.data.totals) {
+          buyingCostVal = statsResponse.data.totals.totalBuyingCost || 0;
+        }
+      } else {
+        const statsResponse = await fetchProductSalesStatistics(
+          selectedStorefront,
+          startDateStr,
+          endDateStr,
+          reportSaleType,
+        );
+        if (statsResponse.success && statsResponse.data.totals) {
+          buyingCostVal = statsResponse.data.totals.totalBuyingCost || 0;
+        }
+      }
+      setBuyingCost(buyingCostVal);
+
+      // 2. Fetch expenses
+      const expenseLocId = selectedStorefront === "all" ? null : selectedStorefront;
+      const expenseResponse = await fetchExpenses(startDateStr, endDateStr, expenseLocId);
+      if (expenseResponse.success) {
+        const totalExp = expenseResponse.data.reduce((sum, item) => sum + (item.amount || 0), 0);
+        setTotalExpense(totalExp);
+      } else {
+        setTotalExpense(0);
+      }
+    } catch (error) {
+      console.error("Error loading overall profit details:", error);
+    } finally {
+      setLoadingProfit(false);
     }
   };
 
@@ -552,7 +604,9 @@ export const Reports: React.FC = () => {
 
   const handleRefresh = () => {
     loadReports();
-    if (activeTab === "paid") {
+    if (activeTab === "overall") {
+      loadOverallProfitDetails();
+    } else if (activeTab === "paid") {
       if (selectedStorefront === "all") {
         loadAllStorefrontsPaidOrdersReport();
       } else {
@@ -660,7 +714,9 @@ export const Reports: React.FC = () => {
           saleReports={saleReports}
           allStorefrontsReport={allStorefrontsReport}
           selectedStorefront={selectedStorefront}
-          loading={loading}
+          loading={loading || loadingProfit}
+          buyingCost={buyingCost}
+          totalExpense={totalExpense}
         />
       )}
 

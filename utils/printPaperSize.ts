@@ -70,29 +70,35 @@ export const getPrintPaperStyles = (paperSize: PrintPaperSize): string => {
       return `
         ${base}
         @media print {
-          @page { size: A5; margin: 8mm; }
+          @page { size: A5; margin: 4mm; }
           .voucher-container {
             width: 100% !important;
             max-width: 100% !important;
-            padding: 10mm !important;
+            padding: 4mm !important;
           }
         }
         @media screen {
           .voucher-container {
             max-width: 148mm;
             min-height: 210mm;
-            padding: 10mm;
+            padding: 6mm;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
           }
         }
-        .voucher-container { font-size: 11px; }
-        .voucher-logo { width: 80px !important; height: 80px !important; }
-        .voucher-shop-name { font-size: 1rem !important; }
-        .voucher-table th { padding: 8px; font-size: 9px; }
-        .voucher-table td { padding: 8px; font-size: 10px; }
-        .voucher-total-bar { font-size: 13px !important; padding: 8px 12px !important; }
-        .voucher-footer-title { font-size: 1rem !important; }
-        .voucher-summary-grid { gap: 1rem !important; }
+        .voucher-container { font-size: 10px; }
+        .voucher-logo { width: 50px !important; height: 50px !important; }
+        .voucher-shop-name { font-size: 14px !important; margin-top: 4px !important; }
+        .text-center.mb-4.sm\\:mb-8 { margin-bottom: 8px !important; }
+        .voucher-invoice-row { margin-bottom: 8px !important; font-size: 9px !important; }
+        .voucher-table { margin: 8px 0 !important; }
+        .voucher-table th { padding: 4px 6px !important; font-size: 9px; }
+        .voucher-table td { padding: 4px 6px !important; font-size: 9px; }
+        .voucher-total-bar { font-size: 11px !important; padding: 4px 8px !important; }
+        .voucher-footer-title { font-size: 10px !important; margin-top: 8px !important; }
+        .voucher-sign { margin-top: 12px !important; }
+        .voucher-summary-grid { display: flex !important; flex-direction: column !important; gap: 0.5rem !important; }
+        .voucher-summary-grid > div:first-child { order: 2; }
+        .voucher-summary-grid > div:last-child { order: 1; }
       `;
     case "thermal-80mm":
       return `

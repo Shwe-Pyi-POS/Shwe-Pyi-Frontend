@@ -113,6 +113,7 @@ export const CustomPrintModal: React.FC<CustomPrintModalProps> = ({
         : 0,
       total: order.finalAmount || 0,
       paymentMethod: getPaymentMethodLabel(order.paymentMethod),
+      paymentType: order.paymentType,
       paidAmount: order.paidAmount,
       change: order.extraChange,
       note: order.note || undefined,

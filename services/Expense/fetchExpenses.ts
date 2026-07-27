@@ -35,11 +35,13 @@ interface FetchExpensesResponse {
 export const fetchExpenses = async (
   startDate?: string | null,
   endDate?: string | null,
+  locationId?: string | null,
 ): Promise<FetchExpensesResponse> => {
   try {
     const params = new URLSearchParams();
     if (startDate) params.append("startDate", startDate);
     if (endDate) params.append("endDate", endDate);
+    if (locationId) params.append("locationId", locationId);
 
     const url = `/expense${params.toString() ? `?${params.toString()}` : ""}`;
     const response = await axios.get(url);

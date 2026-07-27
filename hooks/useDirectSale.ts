@@ -480,6 +480,7 @@ export const useDirectSale = () => {
           paidAmount: finalPaidAmount,
           change: finalPaidAmount - total,
           paymentMethod,
+          paymentType,
           note,
           customerName: selectedPersona?.name,
           customerPhone: selectedPersona?.phone,

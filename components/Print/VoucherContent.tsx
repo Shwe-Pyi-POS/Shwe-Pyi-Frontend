@@ -58,6 +58,7 @@ export interface VoucherReceiptData {
   tax?: number;
   total: number;
   paymentMethod: string;
+  paymentType?: string;
   paidAmount?: number;
   change?: number;
   note?: string;
@@ -92,9 +93,9 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
   const perItemFees = receiptData.perItemTransportFees;
   const totalPerItemFees = perItemFees
     ? receiptData.items.reduce(
-        (sum, item) => sum + (perItemFees[item.code ?? ""] ?? 0),
-        0,
-      )
+      (sum, item) => sum + (perItemFees[item.code ?? ""] ?? 0),
+      0,
+    )
     : 0;
   const hasPerItemFees = totalPerItemFees > 0;
   const effectiveTransportFee = hasPerItemFees ? 0 : transportFee;
@@ -124,9 +125,8 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
       </div>
 
       <div
-        className={`flex justify-between items-start mb-4 sm:mb-6 voucher-invoice-row ${
-          isThermal ? "flex-col gap-1" : ""
-        }`}
+        className={`flex justify-between items-start mb-4 sm:mb-6 voucher-invoice-row ${isThermal ? "flex-col gap-1" : ""
+          }`}
       >
         <div
           className={
@@ -179,9 +179,8 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
               <div key={index} className="voucher-thermal-item">
                 <div>{index + 1}</div>
                 <div
-                  className={`voucher-thermal-col-item ${
-                    item.name.length > THERMAL_ITEM_LONG_CHARS ? "is-long" : ""
-                  }`}
+                  className={`voucher-thermal-col-item ${item.name.length > THERMAL_ITEM_LONG_CHARS ? "is-long" : ""
+                    }`}
                   title={item.name}
                 >
                   {item.name}
@@ -206,12 +205,12 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
             <thead>
               <tr>
                 <th style={{ width: "8%" }}>NO</th>
-                <th style={{ width: "8%" }}>CODE</th>
-                <th style={{ width: "38%" }}>ITEM DESCRIPTION</th>
-                <th style={{ width: "12%" }}>PRICE</th>
+                <th style={{ width: "10%" }}>CODE</th>
+                <th style={{ width: "30%" }}>ITEM DESCRIPTION</th>
+                <th style={{ width: "15%" }}>PRICE</th>
                 <th style={{ width: "10%" }}>QTY.</th>
-                <th style={{ width: "12%" }}>UNIT</th>
-                <th style={{ width: "12%" }}>TOTAL</th>
+                <th style={{ width: "10%", textAlign: "right" }}>UNIT</th>
+                <th style={{ width: "10%" }}>TOTAL</th>
               </tr>
             </thead>
             <tbody>
@@ -230,7 +229,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
                     <td>{item.name}</td>
                     <td>{adjustedPrice.toLocaleString()}</td>
                     <td>{formatReceiptQty(item)}</td>
-                    <td>{formatReceiptUnit(item)}</td>
+                    <td className="text-right">{formatReceiptUnit(item)}</td>
                     <td>{adjustedTotal.toLocaleString()}</td>
                   </tr>
                 );
@@ -241,9 +240,8 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
       )}
 
       <div
-        className={`voucher-summary-grid ${
-          isThermal ? "" : "grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8"
-        }`}
+        className={`voucher-summary-grid ${isThermal ? "" : "grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8"
+          }`}
       >
         <div>
           <div className="mb-3 sm:mb-6">
@@ -258,10 +256,17 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
             ) : (
               <>
                 <p className="font-bold mb-1">Payment Info:</p>
+                <p>Type: {receiptData.paymentType ? (receiptData.paymentType.toLowerCase() === "credit" ? "Credit" : "Paid") : (receiptData.creditPersonName ? "Credit" : "Paid")}</p>
                 <p>Method: {receiptData.paymentMethod}</p>
                 {receiptData.paidAmount != null && (
                   <p>
                     Paid: {receiptData.paidAmount.toLocaleString()}{" "}
+                    {shopBranding.currency}
+                  </p>
+                )}
+                {((receiptData.paymentType?.toLowerCase() === "credit") || (receiptData.creditPersonName != null && receiptData.creditPersonName !== "")) && (
+                  <p className="font-semibold text-red-600">
+                    Remaining Balance: {(receiptData.total - (receiptData.paidAmount ?? 0)).toLocaleString()}{" "}
                     {shopBranding.currency}
                   </p>
                 )}

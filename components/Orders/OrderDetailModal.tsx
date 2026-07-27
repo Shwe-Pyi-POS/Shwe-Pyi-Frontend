@@ -89,6 +89,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
         : 0,
       total: order.finalAmount || 0,
       paymentMethod: getPaymentMethodLabel(order.paymentMethod),
+      paymentType: order.paymentType,
       paidAmount: order.paidAmount,
       change: order.extraChange,
       note: order.note || undefined,
@@ -152,7 +153,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
         {/* Modal Header */}
         <div className="flex flex-row justify-between items-start gap-4 p-4 border-b bg-slate-50">
           <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">

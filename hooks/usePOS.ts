@@ -494,6 +494,7 @@ export const usePOS = () => {
           paidAmount: finalPaidAmount,
           change: finalPaidAmount - total,
           paymentMethod,
+          paymentType,
           note,
           customerName: selectedPersona?.name || customerName || "Walk-in Customer",
           customerPhone: selectedPersona?.phone || customerPhone || "",
