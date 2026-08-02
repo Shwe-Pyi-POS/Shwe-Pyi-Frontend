@@ -30,6 +30,7 @@ import { softDeleteAdminAccount } from "../services/Admin/softDeleteAdminAccount
 import { restoreAdminAccount } from "../services/Admin/restoreAdminAccount";
 import { deleteAdminAccount } from "../services/Admin/deleteAdminAccount";
 import { createAdminAccount } from "../services/Admin/createAdminAccount";
+import { updateAdminPassword } from "../services/Admin/updateAdminPassword";
 import {
   fetchLocationProfiles,
   LocationProfile,
@@ -86,6 +87,19 @@ export const AccountManagement: React.FC = () => {
   const [locationProfiles, setLocationProfiles] = useState<LocationProfile[]>(
     [],
   );
+
+  // Password Reset Modal State
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [passwordFormData, setPasswordFormData] = useState({
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showChangeConfirmPassword, setShowChangeConfirmPassword] = useState(false);
+
+  const loggedInUser = JSON.parse(localStorage.getItem("adminData") || "{}");
+  const currentUserRole = loggedInUser.role;
 
   useEffect(() => {
     loadAccounts();
@@ -428,6 +442,41 @@ export const AccountManagement: React.FC = () => {
     }
   };
 
+  const handleOpenPasswordModal = (account: AdminAccount) => {
+    setSelectedAccount(account);
+    setPasswordFormData({ newPassword: "", confirmPassword: "" });
+    setIsPasswordModalOpen(true);
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedAccount) return;
+
+    if (passwordFormData.newPassword !== passwordFormData.confirmPassword) {
+      toast.error("Passwords do not match!");
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      const response = await updateAdminPassword(selectedAccount._id, {
+        newPassword: passwordFormData.newPassword,
+        confirmPassword: passwordFormData.confirmPassword,
+      });
+
+      if (response.success) {
+        toast.success(response.message || "Password updated successfully!");
+        setIsPasswordModalOpen(false);
+      } else {
+        toast.error(response.message || "Failed to update password");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update password");
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
   const activeCount = accounts.filter(
     (a) => !a.softDeleted && !a.deletedAt,
   ).length;
@@ -719,6 +768,16 @@ export const AccountManagement: React.FC = () => {
                           <span className="hidden sm:inline">Edit</span>
                           <span className="sm:hidden">E</span>
                         </button>
+                        {currentUserRole === "owner" && !account.softDeleted && (
+                          <button
+                            onClick={() => handleOpenPasswordModal(account)}
+                            className="text-xs bg-amber-50 text-amber-600 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-amber-100 border border-amber-200 font-medium transition-colors flex items-center gap-1"
+                          >
+                            <Lock className="w-3 h-3" />{" "}
+                            <span className="hidden sm:inline">Change PW</span>
+                            <span className="sm:hidden">PW</span>
+                          </button>
+                        )}
                         {!account.softDeleted ? (
                           <button
                             onClick={() => handleOpenDeleteModal(account)}
@@ -1312,6 +1371,117 @@ export const AccountManagement: React.FC = () => {
                   ) : (
                     <>
                       <Plus className="w-4 h-4" /> Create Account
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Change Password Modal */}
+      {isPasswordModalOpen && selectedAccount && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6 border-b flex justify-between items-center">
+              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <Lock className="w-5 h-5 text-amber-500" />
+                Change Password: {selectedAccount.name}
+              </h2>
+              <button
+                onClick={() => setIsPasswordModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdatePassword} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  New Password <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    required
+                    className="w-full border rounded-lg p-2 pr-10 focus:ring-2 focus:ring-primary outline-none"
+                    placeholder="Enter new password"
+                    value={passwordFormData.newPassword}
+                    onChange={(e) =>
+                      setPasswordFormData({
+                        ...passwordFormData,
+                        newPassword: e.target.value,
+                      })
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showNewPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Confirm New Password <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showChangeConfirmPassword ? "text" : "password"}
+                    required
+                    className="w-full border rounded-lg p-2 pr-10 focus:ring-2 focus:ring-primary outline-none"
+                    placeholder="Confirm new password"
+                    value={passwordFormData.confirmPassword}
+                    onChange={(e) =>
+                      setPasswordFormData({
+                        ...passwordFormData,
+                        confirmPassword: e.target.value,
+                      })
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowChangeConfirmPassword(!showChangeConfirmPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showChangeConfirmPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => setIsPasswordModalOpen(false)}
+                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdatingPassword}
+                  className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isUpdatingPassword ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> Updating...
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-4 h-4" /> Change Password
                     </>
                   )}
                 </button>
