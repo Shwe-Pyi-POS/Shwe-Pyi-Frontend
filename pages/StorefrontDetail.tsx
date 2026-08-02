@@ -745,7 +745,7 @@ export const StorefrontDetail: React.FC = () => {
                       <span className="hidden sm:inline">Updated</span>
                       <span className="sm:hidden">U</span>
                     </th>
-                    {userRole === "owner" && (
+                    {(userRole === "owner" || userRole === "inventory-manager") && (
                       <th className="px-2 sm:px-4 py-3 font-medium text-slate-600">
                         <span className="hidden sm:inline">Actions</span>
                         <span className="sm:hidden">A</span>
@@ -830,7 +830,7 @@ export const StorefrontDetail: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-2 sm:px-4 py-3">
-                        {userRole === "owner" && (
+                        {(userRole === "owner" || userRole === "inventory-manager") && (
                           <div className="flex items-center gap-1 sm:gap-2">
                             <button
                               type="button"

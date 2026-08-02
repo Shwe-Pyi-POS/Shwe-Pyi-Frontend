@@ -20,6 +20,7 @@ interface OverallReportTabProps {
   loading: boolean;
   buyingCost: number;
   totalExpense: number;
+  isWarehouse?: boolean;
 }
 
 export const OverallReportTab: React.FC<OverallReportTabProps> = ({
@@ -30,6 +31,7 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
   loading,
   buyingCost,
   totalExpense,
+  isWarehouse = false,
 }) => {
   // Determine which reports to show in the breakdown table
   const reportsToShow =
@@ -44,7 +46,12 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
                 ?.id === selectedStorefront),
         );
 
-  const totalProfit = displayReport.finalAmount - (buyingCost + totalExpense);
+  const finalSales = isWarehouse ? 0 : displayReport.finalAmount;
+  const paidAmount = isWarehouse ? 0 : displayReport.paidAmount;
+  const creditAmount = isWarehouse ? 0 : (displayReport.finalAmount - displayReport.paidAmount);
+  const orderCount = isWarehouse ? 0 : displayReport.orderCount;
+  const finalBuyingCost = isWarehouse ? 0 : buyingCost;
+  const totalProfit = finalSales - (finalBuyingCost + totalExpense);
 
   if (loading) {
     return (
@@ -63,7 +70,7 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
             Total Sales
           </p>
           <p className="text-lg sm:text-2xl font-bold text-slate-900">
-            {displayReport.finalAmount.toLocaleString()}{" "}
+            {finalSales.toLocaleString()}{" "}
             <span className="hidden sm:inline">MMK</span>
           </p>
         </div>
@@ -72,7 +79,7 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
             Paid Amount
           </p>
           <p className="text-lg sm:text-2xl font-bold text-green-600">
-            {displayReport.paidAmount.toLocaleString()}{" "}
+            {paidAmount.toLocaleString()}{" "}
             <span className="hidden sm:inline">MMK</span>
           </p>
         </div>
@@ -81,9 +88,7 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
             Credit Amount
           </p>
           <p className="text-lg sm:text-2xl font-bold text-purple-600">
-            {(
-              displayReport.finalAmount - displayReport.paidAmount
-            ).toLocaleString()}{" "}
+            {creditAmount.toLocaleString()}{" "}
             <span className="hidden sm:inline">MMK</span>
           </p>
         </div>
@@ -92,7 +97,7 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
             Total Orders
           </p>
           <p className="text-lg sm:text-2xl font-bold text-blue-600">
-            {displayReport.orderCount}
+            {orderCount}
           </p>
         </div>
       </div>
@@ -103,7 +108,7 @@ export const OverallReportTab: React.FC<OverallReportTabProps> = ({
             Buying Cost
           </p>
           <p className="text-lg sm:text-2xl font-bold text-amber-600">
-            {buyingCost.toLocaleString()}{" "}
+            {finalBuyingCost.toLocaleString()}{" "}
             <span className="hidden sm:inline">MMK</span>
           </p>
         </div>

@@ -128,21 +128,19 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
                         onClick={() =>
                           onStatusToggle(p.id, p.status || "active")
                         }
-                        className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
-                          p.status === "active"
+                        className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${p.status === "active"
                             ? "bg-green-100 text-green-700 hover:bg-green-200"
                             : "bg-red-100 text-red-700 hover:bg-red-200"
-                        }`}
+                          }`}
                       >
                         {p.status === "active" ? "Active" : "Inactive"}
                       </button>
                     ) : (
                       <span
-                        className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                          p.status === "active"
+                        className={`px-3 py-1 text-xs font-semibold rounded-full ${p.status === "active"
                             ? "bg-green-100 text-green-700"
                             : "bg-red-100 text-red-700"
-                        }`}
+                          }`}
                       >
                         {p.status === "active" ? "Active" : "Inactive"}
                       </span>
@@ -159,7 +157,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
                         </span>
                         <span className="sm:hidden">View</span>
                       </button>
-                      {userRole === "owner" && (
+                      {userRole === "owner" || userRole === "inventory-manager" && (
                         <button
                           onClick={() => onEdit(p)}
                           className="px-2 py-1 sm:px-3 sm:py-1.5 text-xs rounded-2xl border border-[#000] hover:bg-gray-200 transition-colors whitespace-nowrap"

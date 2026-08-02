@@ -160,13 +160,13 @@ export const WarehouseDetail: React.FC = () => {
           const firstItem = response.data[0];
           setWarehouseName(
             firstItem.warehouseId.locationName ||
-              firstItem.warehouseId.warehouseName ||
-              "Warehouse",
+            firstItem.warehouseId.warehouseName ||
+            "Warehouse",
           );
           setWarehouseCode(
             firstItem.warehouseId.locationCode ||
-              firstItem.warehouseId.warehouseCode ||
-              "",
+            firstItem.warehouseId.warehouseCode ||
+            "",
           );
         }
       } else {
@@ -425,8 +425,7 @@ export const WarehouseDetail: React.FC = () => {
 
       if (result.success) {
         toast.success(
-          `Stock ${
-            adjustmentType === "increase" ? "increased" : "decreased"
+          `Stock ${adjustmentType === "increase" ? "increased" : "decreased"
           } successfully!`,
         );
         setIsAdjustmentModalOpen(false);
@@ -756,7 +755,7 @@ export const WarehouseDetail: React.FC = () => {
                         )}
                       </td>
                       <td className="px-2 sm:px-4 py-3">
-                        {userRole === "owner" && (
+                        {userRole === "owner" || userRole === "inventory-manager" && (
                           <div className="flex items-center gap-1 sm:gap-2">
                             <button
                               onClick={() => openTransferModal(item)}
@@ -832,11 +831,10 @@ export const WarehouseDetail: React.FC = () => {
                         <button
                           key={pageNum}
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`w-10 h-10 flex items-center justify-center rounded-lg border text-sm font-medium transition-all ${
-                            currentPage === pageNum
+                          className={`w-10 h-10 flex items-center justify-center rounded-lg border text-sm font-medium transition-all ${currentPage === pageNum
                               ? "bg-primary text-white border-primary shadow-sm"
                               : "bg-white text-slate-600 hover:bg-slate-50 border-slate-200"
-                          }`}
+                            }`}
                         >
                           {pageNum}
                         </button>
@@ -1116,11 +1114,10 @@ export const WarehouseDetail: React.FC = () => {
 
               {/* Adjustment Type Info */}
               <div
-                className={`p-3 rounded-lg ${
-                  adjustmentType === "increase"
+                className={`p-3 rounded-lg ${adjustmentType === "increase"
                     ? "bg-green-50 border border-green-200"
                     : "bg-red-50 border border-red-200"
-                }`}
+                  }`}
               >
                 <p className="text-sm font-medium">
                   {adjustmentType === "increase"
@@ -1183,11 +1180,10 @@ export const WarehouseDetail: React.FC = () => {
                 <button
                   onClick={handleSubmitAdjustment}
                   disabled={isAdjusting || adjustmentQuantity <= 0}
-                  className={`px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2 ${
-                    adjustmentType === "increase"
+                  className={`px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2 ${adjustmentType === "increase"
                       ? "bg-green-600 hover:bg-green-700"
                       : "bg-red-600 hover:bg-red-700"
-                  }`}
+                    }`}
                 >
                   {isAdjusting ? (
                     <>

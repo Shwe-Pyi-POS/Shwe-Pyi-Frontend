@@ -121,11 +121,21 @@ export const Reports: React.FC = () => {
         ? "direct-sale"
         : "storefront";
 
-  useEffect(() => {
-    loadReports();
-  }, []);
+  const selectedLocation = storefronts.find((sf) => sf._id === selectedStorefront);
+  const isWarehouse = selectedLocation?.type === "warehouse";
 
   useEffect(() => {
+    if (isWarehouse && activeTab !== "overall") {
+      setActiveTab("overall");
+    }
+  }, [isWarehouse, activeTab]);
+
+  useEffect(() => {
+    if (isWarehouse) {
+      loadOverallProfitDetails();
+      return;
+    }
+
     if (selectedStorefront !== "all") {
       if (activeTab === "paid") {
         loadPaidOrdersReport();
@@ -159,7 +169,7 @@ export const Reports: React.FC = () => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStorefront, activeTab, startDate, endDate, reportsDataSource]);
+  }, [selectedStorefront, activeTab, startDate, endDate, reportsDataSource, isWarehouse]);
 
   const formatDateForAPI = (date: Date | null): string | null => {
     if (!date) return null;
@@ -175,7 +185,7 @@ export const Reports: React.FC = () => {
       const locationResponse = await fetchLocationProfiles();
       if (locationResponse.success) {
         const storefrontList = locationResponse.data.filter(
-          (loc) => loc.type === "storefront" && loc.status === "active",
+          (loc) => (loc.type === "storefront" || loc.type === "warehouse") && loc.status === "active",
         );
         setStorefronts(storefrontList.reverse());
 
@@ -190,9 +200,10 @@ export const Reports: React.FC = () => {
         );
         setAllStorefrontsReport(allReportResponse);
 
-        // Load individual storefront reports
+        // Load individual storefront reports (exclude warehouses because they have no sales)
+        const storefrontOnlyList = storefrontList.filter((loc) => loc.type === "storefront");
         const reports = await Promise.all(
-          storefrontList.map((storefront) =>
+          storefrontOnlyList.map((storefront) =>
             fetchSaleReport(
               storefront._id,
               startDateStr,
@@ -226,24 +237,26 @@ export const Reports: React.FC = () => {
 
       // 1. Fetch buying cost
       let buyingCostVal = 0;
-      if (selectedStorefront === "all") {
-        const statsResponse = await fetchAllStorefrontsProductSalesStatistics(
-          startDateStr,
-          endDateStr,
-          reportSaleType,
-        );
-        if (statsResponse.success && statsResponse.data.totals) {
-          buyingCostVal = statsResponse.data.totals.totalBuyingCost || 0;
-        }
-      } else {
-        const statsResponse = await fetchProductSalesStatistics(
-          selectedStorefront,
-          startDateStr,
-          endDateStr,
-          reportSaleType,
-        );
-        if (statsResponse.success && statsResponse.data.totals) {
-          buyingCostVal = statsResponse.data.totals.totalBuyingCost || 0;
+      if (!isWarehouse) {
+        if (selectedStorefront === "all") {
+          const statsResponse = await fetchAllStorefrontsProductSalesStatistics(
+            startDateStr,
+            endDateStr,
+            reportSaleType,
+          );
+          if (statsResponse.success && statsResponse.data.totals) {
+            buyingCostVal = statsResponse.data.totals.totalBuyingCost || 0;
+          }
+        } else {
+          const statsResponse = await fetchProductSalesStatistics(
+            selectedStorefront,
+            startDateStr,
+            endDateStr,
+            reportSaleType,
+          );
+          if (statsResponse.success && statsResponse.data.totals) {
+            buyingCostVal = statsResponse.data.totals.totalBuyingCost || 0;
+          }
         }
       }
       setBuyingCost(buyingCostVal);
@@ -705,7 +718,7 @@ export const Reports: React.FC = () => {
         onReportDataSourceChange={setReportsDataSource}
       />
 
-      <ReportTabs activeTab={activeTab} onTabChange={handleTabChange} />
+      <ReportTabs activeTab={activeTab} onTabChange={handleTabChange} isWarehouse={isWarehouse} />
 
       {/* Overall Tab */}
       {activeTab === "overall" && (
@@ -717,6 +730,7 @@ export const Reports: React.FC = () => {
           loading={loading || loadingProfit}
           buyingCost={buyingCost}
           totalExpense={totalExpense}
+          isWarehouse={isWarehouse}
         />
       )}
 
