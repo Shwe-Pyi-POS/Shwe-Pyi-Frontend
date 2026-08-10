@@ -1,7 +1,7 @@
 import React from "react";
 import { PrintShopBranding } from "../../utils/printShopBranding";
 import { PrintPaperSize } from "../../utils/printPaperSize";
-import logo from "./../../public/shewpyi.jpg";
+import logo from "../../public/printlogo.jpg";
 
 export interface VoucherReceiptItem {
   name: string;
@@ -118,7 +118,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
           {shopBranding.shopName}
         </h2>
         {shopBranding.address && (
-          <p className="voucher-address text-slate-600 mt-1">
+          <p className="voucher-address font-semibold text-slate-800 mt-1">
             {shopBranding.address}
           </p>
         )}
@@ -135,13 +135,15 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
               : "invisible"
           }
         >
-          <p className="font-bold mb-0.5">BILL TO:</p>
-          <p>{receiptData.customerName || receiptData.creditPersonName}</p>
+          <div className="flex mb-1">
+            <p className="font-semibold mr-2">BILL TO:</p>
+            <p className="font-semibold">{receiptData.customerName || receiptData.creditPersonName}</p>
+          </div>
           {receiptData.customerPhone && (
-            <p className="text-xs">Ph: {receiptData.customerPhone}</p>
+            <p className="text-slate-800 font-semibold mb-1">Ph: {receiptData.customerPhone}</p>
           )}
           {receiptData.customerAddress && (
-            <p className="text-xs">{receiptData.customerAddress}</p>
+            <p className="text-slate-800 font-semibold">{receiptData.customerAddress}</p>
           )}
         </div>
         <div className="flex flex-col items-end">
@@ -205,8 +207,8 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
             <thead>
               <tr>
                 <th style={{ width: "8%" }}>NO</th>
-                <th style={{ width: "10%" }}>CODE</th>
-                <th style={{ width: "30%" }}>ITEM DESCRIPTION</th>
+                {/* <th style={{ width: "10%" }}>CODE</th> */}
+                <th style={{ width: "30%", textAlign: "left" }}>ITEM DESCRIPTION</th>
                 <th style={{ width: "15%" }}>PRICE</th>
                 <th style={{ width: "10%" }}>QTY.</th>
                 <th style={{ width: "10%", textAlign: "right" }}>UNIT</th>
@@ -225,7 +227,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
                 return (
                   <tr key={index}>
                     <td>{index + 1}</td>
-                    <td>{item.code}</td>
+                    {/* <td>{item.code}</td> */}
                     <td>{item.name}</td>
                     <td>{adjustedPrice.toLocaleString()}</td>
                     <td>{formatReceiptQty(item)}</td>
