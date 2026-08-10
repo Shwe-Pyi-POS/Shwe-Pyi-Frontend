@@ -1,7 +1,6 @@
 import React from "react";
 import { PrintShopBranding } from "../../utils/printShopBranding";
 import { PrintPaperSize } from "../../utils/printPaperSize";
-import logo from "../../public/printlogo.jpg";
 
 export interface VoucherReceiptItem {
   name: string;
@@ -110,7 +109,7 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
     <div className="voucher-container" data-paper={paperSize}>
       <div className="text-center mb-4 sm:mb-8">
         <img
-          src={logo}
+          src="/printlogo.jpg"
           alt="Shwe Pyi"
           className="voucher-logo mx-auto object-contain"
         />
