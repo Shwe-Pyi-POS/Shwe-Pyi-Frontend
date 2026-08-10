@@ -110,6 +110,13 @@ const PrintReceipt: React.FC = () => {
 
       console.log(branding);
 
+      // Preload the hardcoded fallback logo to ensure it's fully loaded before print dialog opens
+      try {
+        await preloadImage("/printlogo.jpg");
+      } catch (err) {
+        console.warn("Failed to preload printlogo.jpg", err);
+      }
+
       if (branding.logo) {
         setLoadingMessage("Loading shop logo...");
         await preloadImage(branding.logo);
@@ -145,7 +152,7 @@ const PrintReceipt: React.FC = () => {
 
     const printTimer = window.setTimeout(() => {
       window.print();
-    }, 350);
+    }, 600);
 
     const handleAfterPrint = () => {
       handleBack();
