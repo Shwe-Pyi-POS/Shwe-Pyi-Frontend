@@ -59,6 +59,8 @@ export const POS: React.FC = () => {
     setDiscountAmount,
     transportFee,
     setTransportFee,
+    perItemTransportFees,
+    setPerItemTransportFees,
     createdAt,
     setCreatedAt,
     devices,
@@ -203,6 +205,8 @@ export const POS: React.FC = () => {
         setShowMarkupCalculator={setShowMarkupCalculator}
         transportFee={transportFee}
         setTransportFee={setTransportFee}
+        perItemTransportFees={perItemTransportFees}
+        setPerItemTransportFees={setPerItemTransportFees}
         onAddCustomer={handleAddCustomer}
         t={t}
       />

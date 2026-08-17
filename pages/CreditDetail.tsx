@@ -24,6 +24,7 @@ import {
   ShoppingCart,
   Wallet,
   MapPin,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -32,6 +33,8 @@ import {
   CreditRecordsPagination,
 } from "../services/Credit/fetchCreditPersonaRecords";
 import { createCreditRecord } from "../services/Credit/createCreditRecord";
+import { deleteCreditRecord } from "../services/Credit/deleteCreditRecord";
+import { ConfirmModal } from "../components/Common/ConfirmModal";
 import { fetchOrderById } from "../services/Order/fetchOrderById";
 import { createOrder } from "../services/Order/createOrder";
 import {
@@ -99,6 +102,14 @@ export const CreditDetail: React.FC = () => {
   const [paymentsPagination, setPaymentsPagination] =
     useState<CreditRecordsPagination | null>(null);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
+
+  const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
+  const userRole = adminData.role;
+  const canDeletePayment = userRole === "owner";
+
+  const [deletePaymentModalOpen, setDeletePaymentModalOpen] = useState(false);
+  const [paymentToDelete, setPaymentToDelete] = useState<{ id: string; amount: number; orderNumber: string } | null>(null);
+  const [deletingPaymentId, setDeletingPaymentId] = useState<string | null>(null);
 
   // Add Payment Modal State
   const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
@@ -212,6 +223,37 @@ export const CreditDetail: React.FC = () => {
       toast.error("Failed to load payment records");
     } finally {
       setPaymentsLoading(false);
+    }
+  };
+
+  const handleDeletePaymentClick = (recordId: string, amount: number, orderNumber: string) => {
+    setPaymentToDelete({ id: recordId, amount, orderNumber });
+    setDeletePaymentModalOpen(true);
+  };
+
+  const handleConfirmDeletePayment = async () => {
+    if (!paymentToDelete) return;
+    setDeletingPaymentId(paymentToDelete.id);
+    try {
+      const response = await deleteCreditRecord(paymentToDelete.id);
+      if (response.success) {
+        toast.success("Payment record deleted successfully");
+        loadCreditDetail();
+        loadCreditOrders(creditOrdersPage);
+        if (mainTab === "summary") {
+          loadOrderSummary(summaryStartDate, summaryEndDate);
+          loadSummaryOrders(summaryOrdersPage);
+        }
+      } else {
+        toast.error(response.message || "Failed to delete payment record");
+      }
+    } catch (error: any) {
+      console.error("Error deleting payment record:", error);
+      toast.error(error.message || "Failed to delete payment record");
+    } finally {
+      setDeletingPaymentId(null);
+      setDeletePaymentModalOpen(false);
+      setPaymentToDelete(null);
     }
   };
 
@@ -1584,6 +1626,11 @@ export const CreditDetail: React.FC = () => {
                                 <th className="px-4 py-3 font-medium text-right">
                                   {t("creditDetail.remaining")}
                                 </th>
+                                {canDeletePayment && (
+                                  <th className="px-4 py-3 font-medium text-center">
+                                    {t("common.actions") || "Actions"}
+                                  </th>
+                                )}
                               </tr>
                             </thead>
                             <tbody className="divide-y">
@@ -1627,6 +1674,23 @@ export const CreditDetail: React.FC = () => {
                                         MMK
                                       </span>
                                     </td>
+                                    {canDeletePayment && (
+                                      <td className="px-4 py-3 text-center">
+                                        <button
+                                          onClick={() =>
+                                            handleDeletePaymentClick(
+                                              record._id,
+                                              record.paidAmount,
+                                              record.orderId.orderNumber
+                                            )
+                                          }
+                                          className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded transition-colors"
+                                          title="Delete payment record"
+                                        >
+                                          <Trash2 className="w-4 h-4" />
+                                        </button>
+                                      </td>
+                                    )}
                                   </tr>
                                 ),
                               )}
@@ -2006,6 +2070,21 @@ export const CreditDetail: React.FC = () => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={deletePaymentModalOpen}
+        title="Delete Payment Record"
+        message={`Are you sure you want to delete the payment of ${paymentToDelete?.amount.toLocaleString()} MMK for order ${paymentToDelete?.orderNumber}? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmButtonColor="red"
+        onConfirm={handleConfirmDeletePayment}
+        onCancel={() => {
+          setDeletePaymentModalOpen(false);
+          setPaymentToDelete(null);
+        }}
+        isLoading={deletingPaymentId !== null}
+      />
     </div>
   );
 };

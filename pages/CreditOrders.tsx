@@ -49,6 +49,9 @@ const getToday = () => {
 
 export const CreditOrders: React.FC = () => {
   const { t } = useLanguage();
+  const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
+  const userRole = adminData.role;
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -391,11 +394,23 @@ export const CreditOrders: React.FC = () => {
         setOrderToDelete(null);
         await loadOrders();
       } else {
-        toast.error(response.message || "Failed to delete credit order");
+        let errMsg = response.message || "Failed to delete credit order";
+        if (response.message?.includes("Cannot hard delete order with order items")) {
+          errMsg = t("creditOrders.errorHasItems") || response.message;
+        } else if (response.message?.includes("Cannot hard delete order with credit records")) {
+          errMsg = t("creditOrders.errorHasCreditRecords") || response.message;
+        }
+        toast.error(errMsg);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting credit order:", error);
-      toast.error("Failed to delete credit order");
+      let errMsg = error.message || "Failed to delete credit order";
+      if (error.message?.includes("Cannot hard delete order with order items")) {
+        errMsg = t("creditOrders.errorHasItems") || error.message;
+      } else if (error.message?.includes("Cannot hard delete order with credit records")) {
+        errMsg = t("creditOrders.errorHasCreditRecords") || error.message;
+      }
+      toast.error(errMsg);
     } finally {
       setDeletingOrder(false);
     }
@@ -718,14 +733,18 @@ export const CreditOrders: React.FC = () => {
                               <span className="xl:hidden sm:hidden">✓</span>
                             </span>
                           )}
-                          {/* <button
-                            onClick={() => handleOpenDeleteConfirm(order)}
-                            className="text-xs bg-red-100 text-red-700 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-red-200 border border-red-200 font-medium transition-colors flex items-center gap-1"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                            <span className="hidden xl:block">Delete</span>
-                            <span className="xl:hidden sm:hidden">Del</span>
-                          </button> */}
+                          {userRole === "owner" && (
+                            <button
+                              onClick={() => handleOpenDeleteConfirm(order)}
+                              className="text-xs bg-red-100 text-red-700 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-red-200 border border-red-200 font-medium transition-colors flex items-center gap-1"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              <span className="hidden xl:block">
+                                {t("creditOrders.delete")}
+                              </span>
+                              <span className="xl:hidden sm:hidden">Del</span>
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -941,10 +960,10 @@ export const CreditOrders: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-slate-800">
-                    Delete Credit Order
+                    {t("creditOrders.deleteTitle")}
                   </h3>
                   <p className="text-sm text-slate-500">
-                    This action cannot be undone
+                    {t("creditOrders.deleteSubtitle")}
                   </p>
                 </div>
               </div>
@@ -953,22 +972,22 @@ export const CreditOrders: React.FC = () => {
                 <div className="bg-slate-50 rounded-lg p-4 mb-6">
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">Order Number:</span>
+                      <span className="text-slate-600">{t("creditOrders.orderNumber")}:</span>
                       <span className="font-medium text-slate-800">
                         {orderToDelete.orderNumber}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">Total Amount:</span>
+                      <span className="text-slate-600">{t("creditOrders.total")}:</span>
                       <span className="font-medium text-slate-800">
                         {orderToDelete.finalAmount.toLocaleString()} MMK
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">Customer:</span>
+                      <span className="text-slate-600">{t("creditOrders.customer")}:</span>
                       <span className="font-medium text-slate-800">
                         {orderToDelete.creditPersonId?.name ||
-                          "No customer assigned"}
+                          t("creditOrders.noCustomerAssigned")}
                       </span>
                     </div>
                   </div>
@@ -977,9 +996,7 @@ export const CreditOrders: React.FC = () => {
 
               <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-6">
                 <p className="text-sm text-red-800">
-                  <strong>Warning:</strong> Deleting this credit order will
-                  permanently remove all associated data including payment
-                  records and customer balance information.
+                  {t("creditOrders.deleteWarning")}
                 </p>
               </div>
 
@@ -989,7 +1006,7 @@ export const CreditOrders: React.FC = () => {
                   disabled={deletingOrder}
                   className="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
                 >
-                  Cancel
+                  {t("creditOrders.cancel")}
                 </button>
                 <button
                   onClick={handleDeleteOrder}
@@ -999,10 +1016,10 @@ export const CreditOrders: React.FC = () => {
                   {deletingOrder ? (
                     <>
                       <RefreshCw className="w-5 h-5 animate-spin" />
-                      Deleting...
+                      {t("creditOrders.deleting")}
                     </>
                   ) : (
-                    "Delete Order"
+                    t("creditOrders.delete")
                   )}
                 </button>
               </div>

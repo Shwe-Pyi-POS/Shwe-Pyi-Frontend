@@ -149,6 +149,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     onFormDataChange({ ...formData, ...updates });
   };
 
+  const generateRandomBarcode = () => {
+    const chars = "0123456789";
+    let result = "20"; // local prefix
+    for (let i = 0; i < 10; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    updateFormData({ barcode: result });
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -184,9 +193,18 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           </div>
 
           <div className="col-span-1">
-            <label className="block text-xs font-bold text-slate-500">
-              {t("inventory.barcode")}
-            </label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-xs font-bold text-slate-500">
+                {t("inventory.barcode")}
+              </label>
+              <button
+                type="button"
+                onClick={generateRandomBarcode}
+                className="text-[10px] text-primary font-semibold hover:underline cursor-pointer"
+              >
+                Auto Generate
+              </button>
+            </div>
             <input
               className="w-full border rounded p-2"
               value={formData.barcode || ""}

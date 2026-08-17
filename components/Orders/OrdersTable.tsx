@@ -24,6 +24,7 @@ import {
 import { toast } from "sonner";
 import { useApp } from "../../context/AppContext";
 import { ConfirmModal } from "../Common/ConfirmModal";
+import { useLanguage } from "../../context/LanguageContext";
 
 interface OrdersTableProps {
   loading: boolean;
@@ -46,6 +47,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
   onPageChange,
   onLimitChange,
 }) => {
+  const { t } = useLanguage();
   const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
   const userRole = adminData.role;
   console.log(userRole);
@@ -73,11 +75,23 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
           onOrderDeleted();
         }
       } else {
-        toast.error(response.message || "Failed to delete order");
+        let errMsg = response.message;
+        if (response.message.includes("Cannot hard delete order with order items")) {
+          errMsg = t("creditOrders.errorHasItems") || response.message;
+        } else if (response.message.includes("Cannot hard delete order with credit records")) {
+          errMsg = t("creditOrders.errorHasCreditRecords") || response.message;
+        }
+        toast.error(errMsg);
       }
     } catch (error: any) {
       console.error("Error deleting order:", error);
-      toast.error(error.message || "Failed to delete order");
+      let errMsg = error.message || "Failed to delete order";
+      if (error.message?.includes("Cannot hard delete order with order items")) {
+        errMsg = t("creditOrders.errorHasItems") || error.message;
+      } else if (error.message?.includes("Cannot hard delete order with credit records")) {
+        errMsg = t("creditOrders.errorHasCreditRecords") || error.message;
+      }
+      toast.error(errMsg);
     } finally {
       setDeletingOrderId(null);
       setDeleteModalOpen(false);
