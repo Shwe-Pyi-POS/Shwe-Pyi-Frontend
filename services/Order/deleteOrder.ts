@@ -1,4 +1,4 @@
-import { toast } from "sonner";
+import axios from "../axios";
 
 interface DeleteOrderResponse {
   success: boolean;
@@ -8,29 +8,17 @@ interface DeleteOrderResponse {
 
 export const deleteOrder = async (orderId: string): Promise<DeleteOrderResponse> => {
   try {
-    const response = await fetch(`https://pos-backend.imas-pro.com/order/${orderId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    
+    const response = await axios.delete(`/order/${orderId}`);
     return {
       success: true,
-      message: data.message || "Order deleted successfully",
-      data: data.data,
+      message: response.data?.message || "Order deleted successfully",
+      data: response.data?.data,
     };
   } catch (error: any) {
     console.error("Error deleting order:", error);
     return {
       success: false,
-      message: error.message || "Failed to delete order",
+      message: error.response?.data?.message || error.message || "Failed to delete order",
     };
   }
 };

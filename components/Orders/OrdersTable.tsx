@@ -23,6 +23,7 @@ import {
 } from "./orderUtils";
 import { toast } from "sonner";
 import { useApp } from "../../context/AppContext";
+import { ConfirmModal } from "../Common/ConfirmModal";
 
 interface OrdersTableProps {
   loading: boolean;
@@ -49,25 +50,25 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
   const userRole = adminData.role;
   console.log(userRole);
   const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<{ id: string; number: string } | null>(null);
 
   // Check if user can delete orders (admin or owner only)
-  const canDeleteOrder = userRole.role === "owner";
+  const canDeleteOrder = userRole === "owner";
 
-  const handleDeleteOrder = async (orderId: string, orderNumber: string) => {
-    if (
-      !window.confirm(
-        `Are you sure you want to delete order ${orderNumber}? This action cannot be undone.`,
-      )
-    ) {
-      return;
-    }
+  const handleDeleteOrderClick = (orderId: string, orderNumber: string) => {
+    setOrderToDelete({ id: orderId, number: orderNumber });
+    setDeleteModalOpen(true);
+  };
 
-    setDeletingOrderId(orderId);
+  const handleConfirmDelete = async () => {
+    if (!orderToDelete) return;
+    setDeletingOrderId(orderToDelete.id);
     try {
-      const response = await deleteOrder(orderId);
+      const response = await deleteOrder(orderToDelete.id);
 
       if (response.success) {
-        toast.success(`Order ${orderNumber} deleted successfully`);
+        toast.success(`Order ${orderToDelete.number} deleted successfully`);
         if (onOrderDeleted) {
           onOrderDeleted();
         }
@@ -79,6 +80,8 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
       toast.error(error.message || "Failed to delete order");
     } finally {
       setDeletingOrderId(null);
+      setDeleteModalOpen(false);
+      setOrderToDelete(null);
     }
   };
   if (loading) {
@@ -240,7 +243,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                     {canDeleteOrder && (
                       <button
                         onClick={() =>
-                          handleDeleteOrder(order._id, order.orderNumber)
+                          handleDeleteOrderClick(order._id, order.orderNumber)
                         }
                         disabled={deletingOrderId === order._id}
                         className="text-xs bg-red-100 text-red-700 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-red-200 border border-red-300 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -276,6 +279,21 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
           onLimitChange={onLimitChange}
         />
       )}
+
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        title="Delete Order"
+        message={`Are you sure you want to delete order ${orderToDelete?.number}? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmButtonColor="red"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => {
+          setDeleteModalOpen(false);
+          setOrderToDelete(null);
+        }}
+        isLoading={deletingOrderId !== null}
+      />
     </div>
   );
 };
