@@ -249,11 +249,23 @@ export const useDirectSale = () => {
     loadInitialData();
   }, []);
 
+  // Re-fetch immediately when storefront, category, or page changes.
   useEffect(() => {
     if (selectedStorefrontId && !loading) {
       loadStockItems();
     }
-  }, [selectedStorefrontId, search, selectedCategory, currentPage]);
+  }, [selectedStorefrontId, selectedCategory, currentPage]);
+
+  // Re-fetch with 300ms debounce when search text changes.
+  // This prevents firing an API call on every single keystroke.
+  useEffect(() => {
+    if (!selectedStorefrontId || loading) return;
+    const timer = setTimeout(() => {
+      loadStockItems();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
 
   const handleRefresh = async () => {
     setLoading(true);

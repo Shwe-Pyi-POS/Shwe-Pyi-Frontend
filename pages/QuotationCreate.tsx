@@ -123,7 +123,7 @@ export const QuotationCreate: React.FC = () => {
     }
   };
 
-  const loadStockItems = useCallback(async (storefrontIdOverride?: string) => {
+  const loadStockItems = async (storefrontIdOverride?: string) => {
     try {
       const sfId = storefrontIdOverride || (saleMode === "direct-sale" ? DIRECT_SALE_STOREFRONT_ID : selectedStorefrontId);
       const response = await fetchStorefrontStock(
@@ -153,15 +153,7 @@ export const QuotationCreate: React.FC = () => {
     } catch {
       toast.error(t("pos.failedToLoadProducts"));
     }
-  }, [
-    saleMode,
-    selectedStorefrontId,
-    currentPage,
-    itemsPerPage,
-    selectedCategory,
-    search,
-    t,
-  ]);
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -288,13 +280,25 @@ export const QuotationCreate: React.FC = () => {
     };
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editId, isEdit, loadStockItems]);
+  }, [editId, isEdit]);
 
+  // Re-fetch immediately when storefront, category, page, or saleMode changes.
   useEffect(() => {
     if (selectedStorefrontId && !loading) {
       loadStockItems();
     }
-  }, [selectedStorefrontId, search, selectedCategory, currentPage, saleMode, loading, loadStockItems]);
+  }, [selectedStorefrontId, selectedCategory, currentPage, saleMode, loading]);
+
+  // Re-fetch with 300ms debounce when search text changes.
+  // This prevents firing an API call on every single keystroke.
+  useEffect(() => {
+    if (!selectedStorefrontId || loading) return;
+    const timer = setTimeout(() => {
+      loadStockItems();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search, selectedStorefrontId, loading]);
+
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
