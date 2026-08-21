@@ -13,6 +13,7 @@
     "ai": "^6.0.191",
     "axios": "^1.13.2",
     "date-fns": "^4.1.0",
+    "jsbarcode": "^3.12.3",
     "lucide-react": "^0.554.0",
     "react": "19.2.6",
     "react-date-range": "^2.0.1",
@@ -27,6 +28,7 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@types/jsbarcode": "^3.11.4",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",

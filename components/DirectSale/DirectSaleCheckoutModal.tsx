@@ -42,6 +42,8 @@ interface DirectSaleCheckoutModalProps {
   setShowMarkupCalculator: (val: boolean) => void;
   transportFee: number;
   setTransportFee: (val: number) => void;
+  perItemTransportFees: Record<string, number>;
+  setPerItemTransportFees: (val: Record<string, number>) => void;
   onAddCustomer: (name: string, phone: string, address: string) => Promise<boolean>;
   t: (key: string) => string;
 }
@@ -85,12 +87,15 @@ export const DirectSaleCheckoutModal: React.FC<
   setShowMarkupCalculator,
   transportFee,
   setTransportFee,
+  perItemTransportFees,
+  setPerItemTransportFees,
   onAddCustomer,
   t,
 }) => {
   const [showAddCustomerForm, setShowAddCustomerForm] = useState(false);
   const [customerSearch, setCustomerSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showPerItemFees, setShowPerItemFees] = useState(false);
   const autocompleteRef = useRef<HTMLDivElement>(null);
 
   const selectedPersona = creditPersonas.find((p) => p._id === selectedCreditPersonId);
@@ -451,20 +456,80 @@ export const DirectSaleCheckoutModal: React.FC<
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Transport Fee (MMK)
-            </label>
-            <div className="relative">
-              <Truck className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <input
-                type="number"
-                min="0"
-                className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                value={transportFee || ""}
-                onChange={(e) => setTransportFee(Number(e.target.value) || 0)}
-                placeholder="0"
-              />
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-medium text-gray-700">
+                Transport Fee (MMK)
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPerItemFees(!showPerItemFees);
+                  if (showPerItemFees) {
+                    setPerItemTransportFees({});
+                    setTransportFee(0);
+                  }
+                }}
+                className="text-xs text-primary font-semibold hover:underline"
+              >
+                {showPerItemFees ? "Use Flat Fee" : "Custom Per-Item Fee"}
+              </button>
             </div>
+
+            {!showPerItemFees ? (
+              <div className="relative">
+                <Truck className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                <input
+                  type="number"
+                  min="0"
+                  className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  value={transportFee || ""}
+                  onChange={(e) => setTransportFee(Number(e.target.value) || 0)}
+                  placeholder="0"
+                />
+              </div>
+            ) : (
+              <div className="space-y-2 border border-slate-200 rounded-xl p-3 bg-slate-50 max-h-60 overflow-y-auto">
+                <p className="text-xs text-gray-500 font-medium mb-1">Enter fee for each item:</p>
+                {cart.map((item, index) => {
+                  const code = item.stockItem.inventoryId.productCode;
+                  const name = item.stockItem.inventoryId.productName;
+                  const key = item.stockItem.inventoryId._id || `cart-${index}`;
+                  return (
+                    <div key={key} className="flex items-center justify-between gap-2 bg-white p-2 rounded-lg border border-slate-100 shadow-sm">
+                      <div className="flex-1 min-w-0 pr-2">
+                        <p className="text-sm font-semibold text-gray-800 truncate" title={name}>
+                          {name}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {code} • Qty: {item.qty}
+                        </p>
+                      </div>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        className="w-32 text-right border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                        value={perItemTransportFees[code] || ""}
+                        onChange={(e) => {
+                          const val = Number(e.target.value) || 0;
+                          const updatedFees = {
+                            ...perItemTransportFees,
+                            [code]: val,
+                          };
+                          setPerItemTransportFees(updatedFees);
+                          
+                          const sum = cart.reduce((totalSum, cartItem) => {
+                            const itemCode = cartItem.stockItem.inventoryId.productCode;
+                            return totalSum + (updatedFees[itemCode] || 0);
+                          }, 0);
+                          setTransportFee(sum);
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className="bg-gray-50 p-4 rounded-lg border space-y-2">

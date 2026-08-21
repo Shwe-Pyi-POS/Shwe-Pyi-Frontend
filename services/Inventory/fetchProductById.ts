@@ -37,6 +37,7 @@ export interface ProductDetail {
   description: string;
   buyingPrice: number;
   sellingPrice: number;
+  barcode?: string;
   unitOfMeasure: string;
   uomConversions?: UomConversion[];
   reorderPoint: number;

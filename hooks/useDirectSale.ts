@@ -75,6 +75,7 @@ export const useDirectSale = () => {
   const [showMarkupCalculator, setShowMarkupCalculator] = useState(false);
   const [discountAmount, setDiscountAmount] = useState("");
   const [transportFee, setTransportFee] = useState(0);
+  const [perItemTransportFees, setPerItemTransportFees] = useState<Record<string, number>>({});
   const [createdAt, setCreatedAt] = useState<string>(
     new Date().toISOString().split("T")[0],
   );
@@ -486,6 +487,7 @@ export const useDirectSale = () => {
           customerPhone: selectedPersona?.phone,
           customerAddress: selectedPersona?.address,
           creditPersonName: selectedPersona?.name,
+          perItemTransportFees,
         };
 
         const receiptId = `receipt_${receiptData.invoiceNumber}`;
@@ -499,6 +501,7 @@ export const useDirectSale = () => {
         setMarkup(0);
         setMarkupAmount(0);
         setTransportFee(0);
+        setPerItemTransportFees({});
         setNote("");
         setCustomerName("");
         setCustomerPhone("");
@@ -589,6 +592,8 @@ export const useDirectSale = () => {
     setDiscountAmount,
     transportFee,
     setTransportFee,
+    perItemTransportFees,
+    setPerItemTransportFees,
     createdAt,
     setCreatedAt,
     devices,

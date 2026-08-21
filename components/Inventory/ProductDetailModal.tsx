@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   X,
   Package,
@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { ProductDetail } from "../../services/Inventory/fetchProductById";
 import { useLanguage } from "../../context/LanguageContext";
+import JsBarcode from "jsbarcode";
 
 interface ProductDetailModalProps {
   isOpen: boolean;
@@ -24,10 +25,29 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   onClose,
 }) => {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<"about" | "quantity">("about");
+  const [activeTab, setActiveTab] = useState<"about" | "quantity" | "barcode">("about");
   const [stockTab, setStockTab] = useState<"warehouse" | "storefront">(
     "storefront"
   );
+  const barcodeRef = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    if (activeTab === "barcode" && product?.barcode && barcodeRef.current) {
+      try {
+        JsBarcode(barcodeRef.current, product.barcode, {
+          format: "CODE128",
+          lineColor: "#000",
+          width: 2,
+          height: 100,
+          displayValue: true,
+          fontSize: 16,
+          margin: 10,
+        });
+      } catch (err) {
+        console.error("Failed to render barcode", err);
+      }
+    }
+  }, [activeTab, product?.barcode]);
 
   if (!isOpen) return null;
 
@@ -80,6 +100,16 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             }`}
           >
             {t("inventory.productQuantity")}
+          </button>
+          <button
+            onClick={() => setActiveTab("barcode")}
+            className={`px-4 py-3 text-sm font-medium transition-colors ${
+              activeTab === "barcode"
+                ? "bg-[#FEFEB0] text-slate-800 rounded-2xl"
+                : "text-slate-600 hover:text-slate-800"
+            }`}
+          >
+            {t("inventory.barcode")}
           </button>
         </div>
 
@@ -182,6 +212,14 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                         {product.SKU}
                       </p>
                     </div> */}
+                    <div>
+                      <p className="text-xs text-slate-500 font-medium mb-1">
+                        {t("inventory.barcode")}
+                      </p>
+                      <p className="text-sm font-mono text-slate-800">
+                        {product.barcode || "-"}
+                      </p>
+                    </div>
                     <div>
                       <p className="text-xs text-slate-500 font-medium mb-1">
                         {t("inventory.category")}
@@ -290,7 +328,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     </div>
                   )} */}
                 </div>
-              ) : (
+              ) : activeTab === "quantity" ? (
                 <div className="space-y-6">
                   {/* Dates */}
                   <div className="grid grid-cols-2 gap-4">
@@ -466,6 +504,64 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                         <p>No storefronts found</p>
                       </div>
                     )}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-10 space-y-6">
+                  {product.barcode ? (
+                    <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm flex flex-col items-center">
+                      <p className="text-sm font-semibold text-slate-500 mb-4">
+                        {product.productName}
+                      </p>
+                      <svg ref={barcodeRef}></svg>
+                      <button
+                        onClick={() => {
+                          const printWindow = window.open("", "_blank");
+                          if (printWindow) {
+                            printWindow.document.write(`
+                              <html>
+                                <head>
+                                  <title>Print Barcode - ${product.productName}</title>
+                                  <style>
+                                    body {
+                                      display: flex;
+                                      flex-direction: column;
+                                      align-items: center;
+                                      justify-content: center;
+                                      height: 100vh;
+                                      margin: 0;
+                                      font-family: sans-serif;
+                                    }
+                                    svg {
+                                      width: 80%;
+                                      max-width: 300px;
+                                    }
+                                  </style>
+                                </head>
+                                <body>
+                                  <h3>${product.productName}</h3>
+                                  ${barcodeRef.current?.outerHTML || ""}
+                                  <script>
+                                    window.onload = function() {
+                                      window.print();
+                                      window.close();
+                                    }
+                                  </script>
+                                </body>
+                              </html>
+                            `);
+                            printWindow.document.close();
+                          }
+                        }}
+                        className="mt-6 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors text-sm font-medium"
+                      >
+                        Print Barcode
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-slate-500">
+                      <p>No barcode set for this product.</p>
+                    </div>
+                  )}
                 </div>
               )}
             </>
