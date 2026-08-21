@@ -733,7 +733,7 @@ export const CreditOrders: React.FC = () => {
                               <span className="xl:hidden sm:hidden">✓</span>
                             </span>
                           )}
-                          {userRole === "owner" && (
+                          {(userRole === "owner" || userRole === "admin" || userRole === "cashier") && (
                             <button
                               onClick={() => handleOpenDeleteConfirm(order)}
                               className="text-xs bg-red-100 text-red-700 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-red-200 border border-red-200 font-medium transition-colors flex items-center gap-1"

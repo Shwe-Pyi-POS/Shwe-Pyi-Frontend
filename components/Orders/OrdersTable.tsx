@@ -55,8 +55,8 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<{ id: string; number: string } | null>(null);
 
-  // Check if user can delete orders (admin or owner only)
-  const canDeleteOrder = userRole === "owner";
+  // Check if user can delete orders (owner, admin, or cashier)
+  const canDeleteOrder = userRole === "owner" || userRole === "admin" || userRole === "cashier";
 
   const handleDeleteOrderClick = (orderId: string, orderNumber: string) => {
     setOrderToDelete({ id: orderId, number: orderNumber });

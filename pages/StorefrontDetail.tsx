@@ -725,10 +725,10 @@ export const StorefrontDetail: React.FC = () => {
                     <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
                       Qty
                     </th>
-                    <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
+                    {/* <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
                       <span className="hidden sm:inline">Available</span>
                       <span className="sm:hidden">Avail</span>
-                    </th>
+                    </th> */}
                     <th className="px-2 sm:px-4 py-3 font-medium text-slate-600 text-right">
                       <span className="hidden sm:inline">Price</span>
                       <span className="sm:hidden">$</span>
@@ -783,9 +783,9 @@ export const StorefrontDetail: React.FC = () => {
                           quantityByUnit={item.quantityByUnit}
                         />
                       </td>
-                      <td className="px-2 sm:px-4 py-3 text-right text-slate-600 text-xs sm:text-sm">
+                      {/* <td className="px-2 sm:px-4 py-3 text-right text-slate-600 text-xs sm:text-sm">
                         {item.availableQuantity}
-                      </td>
+                      </td> */}
                       <td className="px-2 sm:px-4 py-3 text-right font-medium text-slate-700 text-xs sm:text-sm">
                         {(item.inventoryId.sellingPrice || 0).toLocaleString()}{" "}
                         <span className="hidden sm:inline">MMK</span>
@@ -852,7 +852,7 @@ export const StorefrontDetail: React.FC = () => {
                             >
                               <TrendingUp className="w-3 h-3" /> +
                             </button>
-                            <button
+                            {userRole === "owner" && <button
                               type="button"
                               onClick={() =>
                                 openAdjustmentModal(item, "decrease")
@@ -863,6 +863,7 @@ export const StorefrontDetail: React.FC = () => {
                             >
                               <TrendingDown className="w-3 h-3" /> -
                             </button>
+                            }
                           </div>
                         )}
                       </td>
