@@ -206,11 +206,11 @@ export const CreditDetail: React.FC = () => {
         setPersonaDetail((prev) =>
           prev
             ? {
-                ...prev,
-                creditRecords: response.data!.creditRecords,
-                summary: response.data!.summary,
-                orders: response.data!.orders,
-              }
+              ...prev,
+              creditRecords: response.data!.creditRecords,
+              summary: response.data!.summary,
+              orders: response.data!.orders,
+            }
             : response.data!,
         );
         setPaymentsPagination(response.pagination ?? null);
@@ -642,22 +642,20 @@ export const CreditDetail: React.FC = () => {
           <div className="flex gap-2 mb-6 border-b">
             <button
               onClick={() => setMainTab("summary")}
-              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${
-                mainTab === "summary"
+              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${mainTab === "summary"
                   ? "border-primary text-primary"
                   : "border-transparent text-slate-500 hover:text-slate-700"
-              }`}
+                }`}
             >
               <LayoutGrid className="w-4 h-4" />
               {t("creditDetail.summary")}
             </button>
             <button
               onClick={() => setMainTab("credit")}
-              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${
-                mainTab === "credit"
+              className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${mainTab === "credit"
                   ? "border-primary text-primary"
                   : "border-transparent text-slate-500 hover:text-slate-700"
-              }`}
+                }`}
             >
               <CreditCard className="w-4 h-4" />
               {t("creditDetail.title")}
@@ -713,11 +711,10 @@ export const CreditDetail: React.FC = () => {
                           setSummaryStartDate(preset.start);
                           setSummaryEndDate(preset.end);
                         }}
-                        className={`px-3 py-1.5 text-sm rounded-lg transition-colors font-medium ${
-                          summaryStartDate === null && preset.start === null
+                        className={`px-3 py-1.5 text-sm rounded-lg transition-colors font-medium ${summaryStartDate === null && preset.start === null
                             ? "bg-primary text-white"
                             : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                        }`}
+                          }`}
                       >
                         {preset.label}
                       </button>
@@ -1032,11 +1029,10 @@ export const CreditDetail: React.FC = () => {
                                   </td>
                                   <td className="px-4 py-3">
                                     <span
-                                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                        order.saleType === "direct-sale"
+                                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${order.saleType === "direct-sale"
                                           ? "bg-purple-100 text-purple-700"
                                           : "bg-blue-100 text-blue-700"
-                                      }`}
+                                        }`}
                                     >
                                       {order.saleType === "direct-sale"
                                         ? "Direct"
@@ -1045,11 +1041,10 @@ export const CreditDetail: React.FC = () => {
                                   </td>
                                   <td className="px-4 py-3">
                                     <span
-                                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                        order.paymentType === "credit"
+                                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${order.paymentType === "credit"
                                           ? "bg-orange-100 text-orange-700"
                                           : "bg-green-100 text-green-700"
-                                      }`}
+                                        }`}
                                     >
                                       {order.paymentType === "credit"
                                         ? "Credit"
@@ -1089,13 +1084,12 @@ export const CreditDetail: React.FC = () => {
                                   </td> */}
                                   <td className="px-4 py-3">
                                     <span
-                                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                        order.orderStatus === "completed"
+                                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${order.orderStatus === "completed"
                                           ? "bg-green-100 text-green-700"
                                           : order.orderStatus === "cancelled"
                                             ? "bg-red-100 text-red-700"
                                             : "bg-yellow-100 text-yellow-700"
-                                      }`}
+                                        }`}
                                     >
                                       {order.orderStatus?.toUpperCase()}
                                     </span>
@@ -1131,8 +1125,8 @@ export const CreditDetail: React.FC = () => {
                                   }
                                   disabled={
                                     summaryOrdersPage >=
-                                      (summaryOrdersPagination.totalPages ||
-                                        1) || loadingSummaryOrders
+                                    (summaryOrdersPagination.totalPages ||
+                                      1) || loadingSummaryOrders
                                   }
                                   className="px-3 py-1.5 text-sm border rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
@@ -1209,11 +1203,10 @@ export const CreditDetail: React.FC = () => {
               <div className="flex gap-2 mb-6 border-b">
                 <button
                   onClick={() => setActiveTab("orders")}
-                  className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${
-                    activeTab === "orders"
+                  className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${activeTab === "orders"
                       ? "border-primary text-primary"
                       : "border-transparent text-slate-500 hover:text-slate-700"
-                  }`}
+                    }`}
                 >
                   <Receipt className="w-4 h-4" />
                   {t("creditDetail.associatedOrders")} (
@@ -1221,11 +1214,10 @@ export const CreditDetail: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setActiveTab("products")}
-                  className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${
-                    activeTab === "products"
+                  className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${activeTab === "products"
                       ? "border-primary text-primary"
                       : "border-transparent text-slate-500 hover:text-slate-700"
-                  }`}
+                    }`}
                 >
                   <Box className="w-4 h-4" />
                   Purchased Products (
@@ -1233,11 +1225,10 @@ export const CreditDetail: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setActiveTab("payments")}
-                  className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${
-                    activeTab === "payments"
+                  className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${activeTab === "payments"
                       ? "border-primary text-primary"
                       : "border-transparent text-slate-500 hover:text-slate-700"
-                  }`}
+                    }`}
                 >
                   <CreditCard className="w-4 h-4" />
                   {t("creditDetail.paymentRecords")} (
@@ -1376,11 +1367,10 @@ export const CreditDetail: React.FC = () => {
                                         );
                                         return (
                                           <div
-                                            className={`rounded-lg px-2 py-1 ${
-                                              urgency === "near"
+                                            className={`rounded-lg px-2 py-1 ${urgency === "near"
                                                 ? "bg-amber-50 border border-amber-200"
                                                 : ""
-                                            }`}
+                                              }`}
                                           >
                                             <div
                                               className={`text-xs font-medium ${getDueDateCellClasses(urgency)}`}
@@ -1410,13 +1400,12 @@ export const CreditDetail: React.FC = () => {
                                   </td>
                                   <td className="px-4 py-3">
                                     <span
-                                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                        order.orderStatus === "completed"
+                                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${order.orderStatus === "completed"
                                           ? "bg-green-100 text-green-700"
                                           : order.orderStatus === "cancelled"
                                             ? "bg-red-100 text-red-700"
                                             : "bg-yellow-100 text-yellow-700"
-                                      }`}
+                                        }`}
                                     >
                                       {order.orderStatus?.toUpperCase()}
                                     </span>
@@ -1477,8 +1466,8 @@ export const CreditDetail: React.FC = () => {
                                   }
                                   disabled={
                                     creditOrdersPage >=
-                                      (creditOrdersPagination.totalPages ||
-                                        1) || loadingCreditOrders
+                                    (creditOrdersPagination.totalPages ||
+                                      1) || loadingCreditOrders
                                   }
                                   className="px-3 py-1.5 text-sm border rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
@@ -1663,12 +1652,11 @@ export const CreditDetail: React.FC = () => {
                                     </td>
                                     <td className="px-4 py-3 text-right">
                                       <span
-                                        className={`font-medium ${
-                                          record.remainingBalanceAfterPayment >
-                                          0
+                                        className={`font-medium ${record.remainingBalanceAfterPayment >
+                                            0
                                             ? "text-orange-600"
                                             : "text-green-600"
-                                        }`}
+                                          }`}
                                       >
                                         {record.remainingBalanceAfterPayment?.toLocaleString()}{" "}
                                         MMK
@@ -1721,7 +1709,7 @@ export const CreditDetail: React.FC = () => {
                                   }
                                   disabled={
                                     paymentsPage >=
-                                      paymentsPagination.totalPages ||
+                                    paymentsPagination.totalPages ||
                                     paymentsLoading
                                   }
                                   className="ml-3 relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50"
@@ -1741,7 +1729,7 @@ export const CreditDetail: React.FC = () => {
                                   <span className="font-medium">
                                     {Math.min(
                                       paymentsPage *
-                                        paymentsPagination.itemsPerPage,
+                                      paymentsPagination.itemsPerPage,
                                       paymentsPagination.totalItems,
                                     )}
                                   </span>{" "}
@@ -1794,11 +1782,10 @@ export const CreditDetail: React.FC = () => {
                                             loadPaymentRecords(pageNum)
                                           }
                                           disabled={paymentsLoading}
-                                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                                            paymentsPage === pageNum
+                                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${paymentsPage === pageNum
                                               ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
                                               : "bg-white border-slate-300 text-slate-500 hover:bg-slate-50"
-                                          }`}
+                                            }`}
                                         >
                                           {pageNum}
                                         </button>
@@ -1812,7 +1799,7 @@ export const CreditDetail: React.FC = () => {
                                     }
                                     disabled={
                                       paymentsPage >=
-                                        paymentsPagination.totalPages ||
+                                      paymentsPagination.totalPages ||
                                       paymentsLoading
                                     }
                                     className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-slate-300 bg-white text-sm font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50"

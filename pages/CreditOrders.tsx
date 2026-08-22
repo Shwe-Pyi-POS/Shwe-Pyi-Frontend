@@ -589,7 +589,7 @@ export const CreditOrders: React.FC = () => {
                       </td>
                       <td className="px-2 sm:px-4 py-3">
                         {order.creditPersonId &&
-                        typeof order.creditPersonId === "object" ? (
+                          typeof order.creditPersonId === "object" ? (
                           <div className="flex items-center gap-2">
                             <User className="w-4 h-4 text-slate-400 flex-shrink-0" />
                             <div className="min-w-0">
@@ -659,11 +659,10 @@ export const CreditOrders: React.FC = () => {
                               return (
                                 <button
                                   onClick={() => handleOpenDueDateModal(order)}
-                                  className={`rounded-lg px-2 py-1 text-left w-full transition-colors hover:opacity-80 ${
-                                    urgency === "near"
+                                  className={`rounded-lg px-2 py-1 text-left w-full transition-colors hover:opacity-80 ${urgency === "near"
                                       ? "bg-amber-50 border border-amber-200"
                                       : ""
-                                  }`}
+                                    }`}
                                 >
                                   <div
                                     className={`font-medium text-xs sm:text-sm ${getDueDateCellClasses(
@@ -733,7 +732,7 @@ export const CreditOrders: React.FC = () => {
                               <span className="xl:hidden sm:hidden">✓</span>
                             </span>
                           )}
-                          {(userRole === "owner" || userRole === "admin" || userRole === "cashier") && (
+                          {userRole === "owner" && (
                             <button
                               onClick={() => handleOpenDeleteConfirm(order)}
                               className="text-xs bg-red-100 text-red-700 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-red-200 border border-red-200 font-medium transition-colors flex items-center gap-1"
@@ -914,7 +913,7 @@ export const CreditOrders: React.FC = () => {
                       {Math.max(
                         0,
                         (selectedOrderForPaidAmount?.finalAmount || 0) -
-                          Number(newPaidAmount || 0),
+                        Number(newPaidAmount || 0),
                       ).toLocaleString()}{" "}
                       MMK
                     </span>
