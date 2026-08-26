@@ -115,86 +115,86 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
             </select>
 
             <div className="relative flex-1 sm:flex-initial">
-            <button
-              onClick={() => setShowStorefrontMenu(!showStorefrontMenu)}
-              className="flex items-center gap-2 px-3 py-2.5 bg-dark text-white rounded-xl hover:bg-dark-800 transition-all shadow-sm"
-            >
-              <Store className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium max-w-[120px] truncate">
-                {storefronts.find((sf) => sf._id === selectedStorefrontId)
-                  ?.locationName || "Store"}
-              </span>
-              <ChevronDown
-                className={`w-4 h-4 text-primary transition-transform duration-200 ${showStorefrontMenu ? "rotate-180" : ""}`}
-              />
-            </button>
-
-            {showStorefrontMenu && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setShowStorefrontMenu(false)}
+              <button
+                onClick={() => setShowStorefrontMenu(!showStorefrontMenu)}
+                className="flex items-center gap-2 px-3 py-2.5 bg-dark text-white rounded-xl hover:bg-dark-800 transition-all shadow-sm"
+              >
+                <Store className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium max-w-[120px] truncate">
+                  {storefronts.find((sf) => sf._id === selectedStorefrontId)
+                    ?.locationName || "Store"}
+                </span>
+                <ChevronDown
+                  className={`w-4 h-4 text-primary transition-transform duration-200 ${showStorefrontMenu ? "rotate-180" : ""}`}
                 />
-                <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl shadow-xl border border-dark-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div className="p-3 bg-dark-50 border-b border-dark-200">
-                    <p className="text-xs font-semibold text-dark-500 uppercase tracking-wider">
-                      {t("pos.selectStorefront")}
-                    </p>
-                  </div>
-                  <div className="max-h-64 overflow-y-auto">
-                    {storefronts.map((sf) => (
-                      <button
-                        key={sf._id}
-                        onClick={() => {
-                          handleStorefrontChange(sf._id);
-                          setShowStorefrontMenu(false);
-                        }}
-                        className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 transition-colors ${sf._id === selectedStorefrontId
+              </button>
+
+              {showStorefrontMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowStorefrontMenu(false)}
+                  />
+                  <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl shadow-xl border border-dark-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="p-3 bg-dark-50 border-b border-dark-200">
+                      <p className="text-xs font-semibold text-dark-500 uppercase tracking-wider">
+                        {t("pos.selectStorefront")}
+                      </p>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {storefronts.map((sf) => (
+                        <button
+                          key={sf._id}
+                          onClick={() => {
+                            handleStorefrontChange(sf._id);
+                            setShowStorefrontMenu(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary/10 transition-colors ${sf._id === selectedStorefrontId
                             ? "bg-primary/20 border-l-4 border-primary"
                             : ""
-                          }`}
-                      >
-                        <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center ${sf._id === selectedStorefrontId
-                              ? "bg-primary text-white"
-                              : "bg-dark-100 text-dark-500"
                             }`}
                         >
-                          <Store className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-dark-800 truncate">
-                            {sf.locationName}
-                          </p>
-                          <p className="text-xs text-dark-400">
-                            {sf.locationCode}
-                          </p>
-                        </div>
-                        {sf._id === selectedStorefrontId && (
-                          <div className="w-2 h-2 rounded-full bg-primary" />
-                        )}
+                          <div
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${sf._id === selectedStorefrontId
+                              ? "bg-primary text-white"
+                              : "bg-dark-100 text-dark-500"
+                              }`}
+                          >
+                            <Store className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-dark-800 truncate">
+                              {sf.locationName}
+                            </p>
+                            <p className="text-xs text-dark-400">
+                              {sf.locationCode}
+                            </p>
+                          </div>
+                          {sf._id === selectedStorefrontId && (
+                            <div className="w-2 h-2 rounded-full bg-primary" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="p-2 border-t border-dark-200 bg-dark-50">
+                      <button
+                        onClick={() => {
+                          handleRefresh();
+                          setShowStorefrontMenu(false);
+                        }}
+                        disabled={loading}
+                        className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-dark-600 hover:bg-dark-100 rounded-lg transition-colors"
+                      >
+                        <RefreshCw
+                          className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+                        />
+                        {t("pos.refreshProducts")}
                       </button>
-                    ))}
+                    </div>
                   </div>
-                  <div className="p-2 border-t border-dark-200 bg-dark-50">
-                    <button
-                      onClick={() => {
-                        handleRefresh();
-                        setShowStorefrontMenu(false);
-                      }}
-                      disabled={loading}
-                      className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-dark-600 hover:bg-dark-100 rounded-lg transition-colors"
-                    >
-                      <RefreshCw
-                        className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
-                      />
-                      {t("pos.refreshProducts")}
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -248,8 +248,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
                     className={`w-8 h-8 flex items-center justify-center rounded-lg border transition-colors text-sm ${currentPage === pageNum
-                        ? "bg-primary text-white border-primary"
-                        : "hover:bg-gray-50 border-gray-200"
+                      ? "bg-primary text-white border-primary"
+                      : "hover:bg-gray-50 border-gray-200"
                       }`}
                   >
                     {pageNum}
@@ -292,8 +292,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
               key={stockItem._id}
               onClick={() => addToCart(stockItem)}
               className={`bg-white p-4 rounded-xl shadow-sm border border-dark-200 cursor-pointer transition-all hover:shadow-lg hover:border-primary hover:scale-[1.02] flex flex-col ${stockItem.quantity === 0
-                  ? "opacity-50 grayscale pointer-events-none"
-                  : ""
+                ? "opacity-50 grayscale pointer-events-none"
+                : ""
                 }`}
             >
               <div className="">
@@ -313,6 +313,9 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
                   MMK
                 </span>
               </div>
+              <span className="text-xs text-gray-400 mt-1">
+                Quantity: {stockItem.quantity}
+              </span>
             </div>
           ))
         )}
