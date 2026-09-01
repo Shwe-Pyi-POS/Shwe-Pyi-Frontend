@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { RefreshCw, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -7,7 +8,6 @@ import {
   OrderPagination,
 } from "../services/Order/fetchOrders";
 import { fetchOrderById } from "../services/Order/fetchOrderById";
-import { fetchOrdersByStorefront } from "../services/Order/fetchOrdersByStorefront";
 import {
   fetchStorefrontProfiles,
   StorefrontProfile,
@@ -33,6 +33,16 @@ const getToday = () => {
 
 export const Orders: React.FC = () => {
   const { t } = useLanguage();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Initialize payment type from URL query if present (e.g. /orders?type=credit)
+  const initialType = searchParams.get("type");
+  const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>(
+    initialType && ["paid", "credit"].includes(initialType.toLowerCase())
+      ? initialType.toLowerCase()
+      : "all",
+  );
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -41,13 +51,13 @@ export const Orders: React.FC = () => {
   const [storefronts, setStorefronts] = useState<StorefrontProfile[]>([]);
   const [selectedStorefrontId, setSelectedStorefrontId] =
     useState<string>("all");
-  const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>("all");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>("all");
   const [creditPersonas, setCreditPersonas] = useState<CreditPersona[]>([]);
   const [showCreditPersonModal, setShowCreditPersonModal] = useState(false);
   const [selectedOrderForCredit, setSelectedOrderForCredit] =
     useState<Order | null>(null);
   const [assigningCreditPerson, setAssigningCreditPerson] = useState(false);
+
   // Initialize dates to today
   const [startDate, setStartDate] = useState<Date | null>(getToday());
   const [endDate, setEndDate] = useState<Date | null>(getToday());
@@ -59,9 +69,26 @@ export const Orders: React.FC = () => {
     loadInitialData();
   }, []);
 
+  // When type param in URL changes from external navigation
+  useEffect(() => {
+    const currentTypeParam = searchParams.get("type");
+    if (
+      currentTypeParam &&
+      ["paid", "credit"].includes(currentTypeParam.toLowerCase())
+    ) {
+      setPaymentTypeFilter(currentTypeParam.toLowerCase());
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedStorefrontId, startDate, endDate, paymentMethodFilter]);
+  }, [
+    selectedStorefrontId,
+    startDate,
+    endDate,
+    paymentMethodFilter,
+    paymentTypeFilter,
+  ]);
 
   useEffect(() => {
     loadOrders();
@@ -73,6 +100,7 @@ export const Orders: React.FC = () => {
     currentPage,
     itemsPerPage,
     paymentMethodFilter,
+    paymentTypeFilter,
   ]);
 
   const loadInitialData = async () => {
@@ -111,21 +139,20 @@ export const Orders: React.FC = () => {
       const startDateStr = formatDateForAPI(startDate);
       const endDateStr = formatDateForAPI(endDate);
 
-      // console.log("Loading orders with dates:", {
-      //   startDateStr,
-      //   endDateStr,
-      //   selectedStorefrontId,
-      // });
-
-      const response = await fetchOrders(startDateStr, endDateStr, "paid", {
-        page: currentPage,
-        limit: itemsPerPage,
-        storefrontId:
-          selectedStorefrontId !== "all" ? selectedStorefrontId : null,
-        paymentMethod:
-          paymentMethodFilter !== "all" ? paymentMethodFilter : null,
-        saleType: "storefront",
-      });
+      const response = await fetchOrders(
+        startDateStr,
+        endDateStr,
+        paymentTypeFilter === "all" ? null : paymentTypeFilter,
+        {
+          page: currentPage,
+          limit: itemsPerPage,
+          storefrontId:
+            selectedStorefrontId !== "all" ? selectedStorefrontId : null,
+          paymentMethod:
+            paymentMethodFilter !== "all" ? paymentMethodFilter : null,
+          saleType: "storefront",
+        },
+      );
 
       if (response.success && response.data) {
         setOrders(response.data);
@@ -152,6 +179,16 @@ export const Orders: React.FC = () => {
     }
   };
 
+  const handlePaymentTypeChange = (newType: string) => {
+    setPaymentTypeFilter(newType);
+    if (newType === "all") {
+      searchParams.delete("type");
+    } else {
+      searchParams.set("type", newType);
+    }
+    setSearchParams(searchParams);
+  };
+
   const filteredOrders = orders.filter((order) => {
     const searchLower = search.toLowerCase();
 
@@ -161,9 +198,22 @@ export const Orders: React.FC = () => {
       .includes(searchLower);
 
     // Check if search matches storefront location
-    const matchesStorefront = order.storefrontId?.locationName
-      ?.toLowerCase()
-      .includes(searchLower);
+    const matchesStorefront =
+      order.storefrontId?.locationName
+        ?.toLowerCase()
+        .includes(searchLower) ||
+      order.storefrontId?.storefrontName?.toLowerCase().includes(searchLower);
+
+    // Check customer / credit person
+    const matchesCreditPerson =
+      order.creditPersonId &&
+      typeof order.creditPersonId === "object" &&
+      (order.creditPersonId.name?.toLowerCase().includes(searchLower) ||
+        order.creditPersonId.phone?.includes(search));
+
+    const matchesCustomer =
+      order.customerName?.toLowerCase().includes(searchLower) ||
+      order.customerPhone?.includes(search);
 
     // Check if search matches any product name in the order
     const matchesProductName = order.ordersProducts?.some((product) =>
@@ -180,6 +230,8 @@ export const Orders: React.FC = () => {
     const matchesSearch =
       matchesOrderNumber ||
       matchesStorefront ||
+      matchesCreditPerson ||
+      matchesCustomer ||
       matchesProductName ||
       matchesProductCode;
 
@@ -189,6 +241,7 @@ export const Orders: React.FC = () => {
     const matchesPaymentMethod =
       paymentMethodFilter === "all" ||
       order.paymentMethod?.toLowerCase() === paymentMethodFilter.toLowerCase();
+
     return matchesSearch && matchesPaymentType && matchesPaymentMethod;
   });
 
@@ -244,7 +297,6 @@ export const Orders: React.FC = () => {
         toast.success(t("orders.creditPersonAssigned"));
         setShowCreditPersonModal(false);
         setSelectedOrderForCredit(null);
-        // Refresh orders
         await loadOrders();
       } else {
         toast.error(response.message || t("orders.failedToAssign"));
@@ -280,7 +332,7 @@ export const Orders: React.FC = () => {
           <button
             onClick={loadOrders}
             disabled={loading}
-            className="hidden sm:flex items-center gap-2 bg-slate-600 text-white px-3 py-2 sm:px-4 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors text-sm sm:text-base"
+            className="hidden sm:flex items-center gap-2 bg-slate-600 text-white px-3 py-2 sm:px-4 rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors text-sm sm:text-base cursor-pointer"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             <span className="hidden sm:inline">{t("common.refresh")}</span>
@@ -289,7 +341,7 @@ export const Orders: React.FC = () => {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Filters with Payment Type Dropdown */}
       <OrdersFilters
         search={search}
         onSearchChange={setSearch}
@@ -299,12 +351,13 @@ export const Orders: React.FC = () => {
           setSelectedStorefrontId(id);
         }}
         paymentTypeFilter={paymentTypeFilter}
-        onPaymentTypeChange={setPaymentTypeFilter}
+        onPaymentTypeChange={handlePaymentTypeChange}
         paymentMethodFilter={paymentMethodFilter}
         onPaymentMethodChange={setPaymentMethodFilter}
         orders={orders}
         filteredOrders={filteredOrders}
         totalItems={pagination?.totalItems}
+        showPaymentTypeFilter={true}
       />
 
       {/* Orders Table */}

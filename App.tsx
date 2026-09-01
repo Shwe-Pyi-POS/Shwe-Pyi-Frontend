@@ -23,7 +23,7 @@ import { Expenses } from "./pages/Expenses";
 import { Suppliers } from "./pages/Suppliers";
 import { Orders } from "./pages/Orders";
 import { DirectSaleOrders } from "./pages/DirectSaleOrders";
-import { CreditOrders } from "./pages/CreditOrders";
+
 import { QuotationList } from "./pages/QuotationList";
 import { QuotationCreate } from "./pages/QuotationCreate";
 import { QuotationDetail } from "./pages/QuotationDetail";
@@ -93,7 +93,10 @@ const AppLayout: React.FC = () => {
           <Route path="/purchasing" element={<Purchasing />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/direct-sale-orders" element={<DirectSaleOrders />} />
-          <Route path="/credit-orders" element={<CreditOrders />} />
+          <Route
+            path="/credit-orders"
+            element={<Navigate to="/orders?type=credit" replace />}
+          />
           <Route path="/quotations" element={<QuotationList />} />
           <Route path="/quotations/create" element={<QuotationCreate />} />
           <Route

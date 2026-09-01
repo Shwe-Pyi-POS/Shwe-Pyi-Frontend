@@ -123,7 +123,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             roles: ["admin", "owner", "cashier"],
           },
           {
-            path: "/credit-orders",
+            path: "/orders?type=credit",
             label: t("sidebar.creditOrder"),
             icon: CreditCard,
             roles: ["admin", "owner", "cashier"],
@@ -239,6 +239,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   );
 
   const isChildActive = (path: string) => {
+    if (path.includes("?")) {
+      return `${location.pathname}${location.search}` === path;
+    }
+    if (path === "/orders") {
+      return (
+        location.pathname === "/orders" &&
+        !location.search.includes("type=credit")
+      );
+    }
     return location.pathname === path;
   };
 
@@ -258,7 +267,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       return next;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname, userRole]);
+  }, [location.pathname, location.search, userRole]);
 
   const toggleGroup = (groupId: string) => {
     setExpandedGroups((prev) => {

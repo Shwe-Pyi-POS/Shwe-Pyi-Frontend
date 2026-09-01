@@ -7,22 +7,14 @@ import {
   CreditCard,
   UserPlus,
   User,
-  UserCircle,
   Trash2,
   Loader2,
 } from "lucide-react";
 import { Order, OrderPagination } from "../../services/Order/fetchOrders";
 import { OrdersPagination as OrdersPaginationBar } from "./OrdersPagination";
 import { deleteOrder } from "../../services/Order/deleteOrder";
-import {
-  getStatusColor,
-  getPaymentTypeLabel,
-  getPaymentMethodLabel,
-  getPaymentTypeColor,
-  formatDate,
-} from "./orderUtils";
+import { getPaymentMethodLabel } from "./orderUtils";
 import { toast } from "sonner";
-import { useApp } from "../../context/AppContext";
 import { ConfirmModal } from "../Common/ConfirmModal";
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -31,7 +23,7 @@ interface OrdersTableProps {
   orders: Order[];
   onViewOrder: (orderId: string) => void;
   onOpenCreditPersonModal: (order: Order) => void;
-  onOrderDeleted?: () => void; // Callback to refresh orders after deletion
+  onOrderDeleted?: () => void;
   pagination?: OrderPagination | null;
   onPageChange?: (page: number) => void;
   onLimitChange?: (limit: number) => void;
@@ -50,10 +42,13 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
   const { t } = useLanguage();
   const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
   const userRole = adminData.role;
-  console.log(userRole);
+
   const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [orderToDelete, setOrderToDelete] = useState<{ id: string; number: string } | null>(null);
+  const [orderToDelete, setOrderToDelete] = useState<{
+    id: string;
+    number: string;
+  } | null>(null);
 
   // Check if user can delete orders (owner only)
   const canDeleteOrder = userRole === "owner";
@@ -76,9 +71,15 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
         }
       } else {
         let errMsg = response.message;
-        if (response.message.includes("Cannot hard delete order with order items")) {
+        if (
+          response.message.includes("Cannot hard delete order with order items")
+        ) {
           errMsg = t("creditOrders.errorHasItems") || response.message;
-        } else if (response.message.includes("Cannot hard delete order with credit records")) {
+        } else if (
+          response.message.includes(
+            "Cannot hard delete order with credit records",
+          )
+        ) {
           errMsg = t("creditOrders.errorHasCreditRecords") || response.message;
         }
         toast.error(errMsg);
@@ -88,7 +89,9 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
       let errMsg = error.message || "Failed to delete order";
       if (error.message?.includes("Cannot hard delete order with order items")) {
         errMsg = t("creditOrders.errorHasItems") || error.message;
-      } else if (error.message?.includes("Cannot hard delete order with credit records")) {
+      } else if (
+        error.message?.includes("Cannot hard delete order with credit records")
+      ) {
         errMsg = t("creditOrders.errorHasCreditRecords") || error.message;
       }
       toast.error(errMsg);
@@ -98,11 +101,12 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
       setOrderToDelete(null);
     }
   };
+
   if (loading) {
     return (
       <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
         <RefreshCw className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
-        <p className="text-slate-500">Loading orders...</p>
+        <p className="text-slate-500">{t("orders.loadingOrders") || "Loading orders..."}</p>
       </div>
     );
   }
@@ -111,7 +115,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
     return (
       <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
         <ShoppingBag className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-        <p className="text-slate-500">No orders found</p>
+        <p className="text-slate-500">{t("orders.noOrdersFound") || "No orders found"}</p>
       </div>
     );
   }
@@ -120,172 +124,189 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
     <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
       {/* Mobile scroll indicator */}
       <div className="sm:hidden px-4 py-2 bg-slate-50 text-xs text-slate-500 text-center">
-        ← Swipe to see more →
+        {t("creditOrders.swipeToSeeMore") || "← Swipe to see more →"}
       </div>
 
       {/* Table container with horizontal scroll on mobile */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left min-w-[800px]">
+        <table className="w-full text-sm text-left min-w-[780px]">
           <thead className="bg-slate-50 border-b">
             <tr>
-              <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
-                <span className="hidden sm:inline">Order Number</span>
+              <th className="px-3 py-3 font-semibold text-slate-600">
+                <span className="hidden sm:inline">{t("orders.orderNumber") || "Order Number"}</span>
                 <span className="sm:hidden">Order #</span>
               </th>
-              {/* <th className="p-4 font-semibold text-slate-600">Storefront</th> */}
-              <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
-                <span className="hidden sm:inline">Items</span>
-                <span className="sm:hidden">Items</span>
+              <th className="px-3 py-3 font-semibold text-slate-600">
+                {t("creditOrders.customer") || "Customer"}
               </th>
-              <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
-                <span className="hidden sm:inline">Final Amount</span>
-                <span className="sm:hidden">Total</span>
+              <th className="px-3 py-3 font-semibold text-slate-600">
+                {t("orders.type") || "Type"}
               </th>
-              <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
-                <span className="hidden sm:inline">Paid</span>
-                <span className="sm:hidden">Paid</span>
+              <th className="px-3 py-3 font-semibold text-slate-600">
+                {t("creditOrders.items") || "Items"}
               </th>
-              <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
-                <span className="hidden sm:inline">Method</span>
-                <span className="sm:hidden">Method</span>
+              <th className="px-3 py-3 font-semibold text-slate-600">
+                {t("creditOrders.total") || "Total"}
               </th>
-              {/* <th className="p-4 font-semibold text-slate-600">Sold By</th> */}
-              {/* <th className="p-4 font-semibold text-slate-600">Credit Person</th> */}
-              {/* <th className="p-4 font-semibold text-slate-600">Status</th> */}
-              {/* <th className="p-4 font-semibold text-slate-600">Date</th> */}
-              <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
-                <span className="hidden sm:inline">Actions</span>
-                <span className="sm:hidden">A</span>
+              <th className="px-3 py-3 font-semibold text-slate-600">
+                {t("orders.method") || "Method"}
+              </th>
+              <th className="px-3 py-3 font-semibold text-slate-600 text-center">
+                {t("creditOrders.actions") || "Actions"}
               </th>
             </tr>
           </thead>
           <tbody className="divide-y">
-            {orders.map((order) => (
-              <tr key={order._id} className="hover:bg-slate-50">
-                <td className="px-2 sm:px-4 py-3 font-medium text-blue-600 text-xs sm:text-sm">
-                  {order.orderNumber}
-                </td>
-                {/* <td className="p-4">
-                <div className="flex items-center gap-2">
-                  <Store className="w-4 h-4 text-slate-400" />
-                  <span>
-                    {order.storefrontId?.locationName ||
-                      order.storefrontId?.storefrontName ||
-                      "-"}
-                  </span>
-                </div>
-              </td> */}
-                <td className="px-2 sm:px-4 py-3">
-                  <span className="bg-slate-100 px-2 py-1 rounded text-xs font-medium">
-                    {order.ordersProducts?.length || 0} item(s)
-                  </span>
-                </td>
-                <td className="px-2 sm:px-4 py-3 font-bold text-slate-800 text-xs sm:text-sm">
-                  {order.finalAmount?.toLocaleString()}{" "}
-                  <span className="hidden sm:inline">MMK</span>
-                </td>
-                <td className="px-2 sm:px-4 py-3 font-bold text-green-600 text-xs sm:text-sm">
-                  {order.paidAmount?.toLocaleString()}{" "}
-                  <span className="hidden sm:inline">MMK</span>
-                </td>
+            {orders.map((order) => {
+              const isCredit = order.paymentType?.toLowerCase() === "credit";
 
-                <td className="px-2 sm:px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                    <span className="text-xs sm:text-sm">
-                      {getPaymentMethodLabel(order.paymentMethod)}
-                    </span>
-                  </div>
-                </td>
-                {/* <td className="p-4">
-                {order.soldBy ? (
-                  <div className="flex items-center gap-2">
-                    <UserCircle className="w-4 h-4 text-slate-400" />
-                    <div>
-                      <p className="text-xs font-medium text-slate-800">
-                        {order.soldBy.name}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        {order.soldBy.role}
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <span className="text-slate-400 text-xs">-</span>
-                )}
-              </td> */}
-                {/* <td className="p-4">
-                {order.creditPersonId &&
-                typeof order.creditPersonId === "object" ? (
-                  <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-slate-400" />
-                    <div>
-                      <p className="text-xs font-medium text-slate-800">
-                        {order.creditPersonId.name}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        {order.creditPersonId.phone}
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <span className="text-slate-400 text-xs">-</span>
-                )}
-              </td> */}
-                {/* <td className="p-4">
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(
-                    order.orderStatus
-                  )}`}
-                >
-                  {order.orderStatus?.toUpperCase()}
-                </span>
-              </td>
-              <td className="p-4 text-slate-500 text-xs">
-                {formatDate(order.createdAt)}
-              </td> */}
-                <td className="px-2 sm:px-4 py-3">
-                  <div className="flex items-center gap-1 sm:gap-2">
-                    <button
-                      onClick={() => onViewOrder(order._id)}
-                      className="text-xs bg-primary/20 text-yellow-800 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-primary/30 border border-primary/30 font-medium transition-colors flex items-center gap-1"
-                    >
-                      <Eye className="w-3 h-3" />{" "}
-                      <span className="hidden xl:inline">View</span>
-                      <span className="xl:hidden sm:hidden">V</span>
-                    </button>
-                    {canDeleteOrder && (
-                      <button
-                        onClick={() =>
-                          handleDeleteOrderClick(order._id, order.orderNumber)
-                        }
-                        disabled={deletingOrderId === order._id}
-                        className="text-xs bg-red-100 text-red-700 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-red-200 border border-red-300 font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {deletingOrderId === order._id ? (
-                          <>
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                            <span className="hidden xl:inline">
-                              Deleting...
-                            </span>
-                            <span className="xl:hidden sm:hidden">...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Trash2 className="w-3 h-3" />
-                            <span className="hidden xl:inline">Delete</span>
-                            <span className="xl:hidden sm:hidden">D</span>
-                          </>
-                        )}
-                      </button>
+              return (
+                <tr key={order._id} className="hover:bg-slate-50 transition-colors">
+                  {/* Order Number & Storefront */}
+                  <td className="px-3 py-3 font-medium text-slate-800 text-xs sm:text-sm">
+                    <div className="text-blue-600 font-semibold">{order.orderNumber}</div>
+                    {(order.storefrontId?.locationName ||
+                      order.storefrontId?.storefrontName) && (
+                      <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                        <Store className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                        <span className="truncate max-w-[140px]">
+                          {order.storefrontId?.locationName ||
+                            order.storefrontId?.storefrontName}
+                        </span>
+                      </div>
                     )}
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  </td>
+
+                  {/* Customer / Credit Person */}
+                  <td className="px-3 py-3">
+                    {order.creditPersonId && typeof order.creditPersonId === "object" ? (
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <div
+                            className="font-medium text-slate-800 text-xs sm:text-sm truncate max-w-[140px]"
+                            title={order.creditPersonId.name}
+                          >
+                            {order.creditPersonId.name}
+                          </div>
+                          <div
+                            className="text-xs text-slate-500 truncate max-w-[140px]"
+                            title={order.creditPersonId.phone}
+                          >
+                            {order.creditPersonId.phone}
+                          </div>
+                        </div>
+                      </div>
+                    ) : order.customerName ? (
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <div className="font-medium text-slate-800 text-xs sm:text-sm truncate max-w-[140px]">
+                            {order.customerName}
+                          </div>
+                          {order.customerPhone && (
+                            <div className="text-xs text-slate-500 truncate max-w-[140px]">
+                              {order.customerPhone}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : isCredit ? (
+                      <button
+                        onClick={() => onOpenCreditPersonModal(order)}
+                        className="text-xs text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2 py-1 rounded flex items-center gap-1 transition-colors"
+                      >
+                        <UserPlus className="w-3 h-3" />
+                        <span>{t("creditOrders.addCreditPerson") || "+ Customer"}</span>
+                      </button>
+                    ) : (
+                      <span className="text-slate-400 text-xs">-</span>
+                    )}
+                  </td>
+
+                  {/* Payment Type Badge */}
+                  <td className="px-3 py-3">
+                    {isCredit ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                        {t("pos.credit") || "Credit"}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        {t("orders.paid") || "Paid"}
+                      </span>
+                    )}
+                  </td>
+
+                  {/* Items */}
+                  <td className="px-3 py-3 text-slate-600 text-xs sm:text-sm">
+                    <span className="bg-slate-100 px-2 py-1 rounded text-xs font-medium">
+                      {order.ordersProducts?.length || 0} {t("creditOrders.items") || "item(s)"}
+                    </span>
+                  </td>
+
+                  {/* Total */}
+                  <td className="px-3 py-3 font-bold text-slate-800 text-xs sm:text-sm whitespace-nowrap">
+                    {order.finalAmount?.toLocaleString()}{" "}
+                    <span className="text-xs font-normal text-slate-500">MMK</span>
+                  </td>
+
+                  {/* Payment Method */}
+                  <td className="px-3 py-3 text-xs sm:text-sm whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      <CreditCard className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                      <span>{getPaymentMethodLabel(order.paymentMethod)}</span>
+                    </div>
+                  </td>
+
+                  {/* Actions */}
+                  <td className="px-3 py-3 text-center">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <button
+                        onClick={() => onViewOrder(order._id)}
+                        className="text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 px-2.5 py-1.5 rounded font-medium transition-colors flex items-center gap-1"
+                        title={t("creditOrders.view") || "View"}
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span className="hidden lg:inline">{t("creditOrders.view") || "View"}</span>
+                      </button>
+
+                      {isCredit && !order.creditPersonId && (
+                        <button
+                          onClick={() => onOpenCreditPersonModal(order)}
+                          className="text-xs bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200 px-2 py-1.5 rounded font-medium transition-colors flex items-center gap-1"
+                          title={t("creditOrders.addCreditPerson") || "Add Customer"}
+                        >
+                          <UserPlus className="w-3.5 h-3.5" />
+                          <span className="hidden xl:inline">{t("creditOrders.addCreditPerson") || "Assign"}</span>
+                        </button>
+                      )}
+
+                      {canDeleteOrder && (
+                        <button
+                          onClick={() =>
+                            handleDeleteOrderClick(order._id, order.orderNumber)
+                          }
+                          disabled={deletingOrderId === order._id}
+                          className="text-xs bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 px-2 py-1.5 rounded font-medium transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title={t("creditOrders.delete") || "Delete"}
+                        >
+                          {deletingOrderId === order._id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5" />
+                          )}
+                          <span className="hidden xl:inline">{t("creditOrders.delete") || "Delete"}</span>
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
+
       {pagination && onPageChange && pagination.totalPages > 1 && (
         <OrdersPaginationBar
           pagination={pagination}
