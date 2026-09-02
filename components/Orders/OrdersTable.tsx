@@ -270,16 +270,6 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                         <span className="hidden lg:inline">{t("creditOrders.view") || "View"}</span>
                       </button>
 
-                      {isCredit && !order.creditPersonId && (
-                        <button
-                          onClick={() => onOpenCreditPersonModal(order)}
-                          className="text-xs bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200 px-2 py-1.5 rounded font-medium transition-colors flex items-center gap-1"
-                          title={t("creditOrders.addCreditPerson") || "Add Customer"}
-                        >
-                          <UserPlus className="w-3.5 h-3.5" />
-                          <span className="hidden xl:inline">{t("creditOrders.addCreditPerson") || "Assign"}</span>
-                        </button>
-                      )}
 
                       {canDeleteOrder && (
                         <button
