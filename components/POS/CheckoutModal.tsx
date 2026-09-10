@@ -87,6 +87,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [showPerItemFees, setShowPerItemFees] = useState(false);
   const autocompleteRef = useRef<HTMLDivElement>(null);
 
+  const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
+  const userRole = adminData.role;
+
+  useEffect(() => {
+    if (userRole === "cashier") {
+      setCreatedAt(new Date().toISOString().split("T")[0]);
+    }
+  }, [userRole, setCreatedAt, showCheckoutModal]);
+
   const selectedPersona = creditPersonas.find((p) => p._id === selectedCreditPersonId);
 
   const filteredPersonas = creditPersonas.filter(
@@ -168,20 +177,22 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t("pos.orderDate") || "Order Date"}
-            </label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <input
-                type="date"
-                className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                value={createdAt}
-                onChange={(e) => setCreatedAt(e.target.value)}
-              />
+          {userRole !== "cashier" && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t("pos.orderDate") || "Order Date"}
+              </label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                <input
+                  type="date"
+                  className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  value={createdAt}
+                  onChange={(e) => setCreatedAt(e.target.value)}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

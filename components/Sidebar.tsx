@@ -19,6 +19,7 @@ import {
   ChevronDown,
   Users,
   MessageSquare,
+  Coins,
   type LucideIcon,
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
@@ -195,7 +196,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             path: "/credits",
             label: t("sidebar.creditSales"),
             icon: CreditCard,
-            roles: ["admin", "owner"],
+            roles: ["admin", "owner", "cashier"],
+          },
+          {
+            path: "/credit-payments",
+            label: t("sidebar.creditPayments"),
+            icon: Coins,
+            roles: ["admin", "owner", "cashier"],
           },
           {
             path: "/expenses",
@@ -292,16 +299,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   return (
     <>
       <div
-        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ease-in-out ${
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ease-in-out ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
         onClick={onClose}
       />
 
       <div
-        className={`sidebar w-72 bg-brand text-white flex flex-col h-screen fixed left-0 top-0 z-50 shadow-2xl print:hidden transform transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`sidebar w-72 bg-brand text-white flex flex-col h-screen fixed left-0 top-0 z-50 shadow-2xl print:hidden transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="px-4 py-4 flex items-center justify-between border-b border-white/10 shrink-0">
           <div className="flex items-center gap-3">
@@ -338,11 +343,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   <button
                     type="button"
                     onClick={() => toggleGroup(group.id)}
-                    className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 ${
-                      isGroupActive
+                    className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 ${isGroupActive
                         ? "bg-white/15 text-white"
                         : "text-white/80 hover:bg-white/10 hover:text-white"
-                    }`}
+                      }`}
                     aria-expanded={isExpanded}
                   >
                     <GroupIcon className="w-5 h-5 shrink-0 opacity-90" />
@@ -350,16 +354,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       {group.label}
                     </span>
                     <ChevronDown
-                      className={`w-4 h-4 shrink-0 transition-transform duration-200 ${
-                        isExpanded ? "rotate-180" : ""
-                      }`}
+                      className={`w-4 h-4 shrink-0 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""
+                        }`}
                     />
                   </button>
 
                   <div
-                    className={`grid transition-[grid-template-rows] duration-200 ease-out ${
-                      isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-                    }`}
+                    className={`grid transition-[grid-template-rows] duration-200 ease-out ${isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                      }`}
                   >
                     <ul className="overflow-hidden min-h-0">
                       {visibleChildren.map((child) => {
@@ -371,23 +373,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                             <NavLink
                               to={child.path}
                               onClick={onClose}
-                              className={`relative flex items-center gap-2.5 py-2 pr-3 pl-11 text-sm font-medium rounded-lg mx-1 my-0.5 transition-all duration-200 group ${
-                                active
+                              className={`relative flex items-center gap-2.5 py-2 pr-3 pl-11 text-sm font-medium rounded-lg mx-1 my-0.5 transition-all duration-200 group ${active
                                   ? "bg-white text-brand shadow-md shadow-black/10"
                                   : "text-white/65 hover:bg-white/10 hover:text-white"
-                              }`}
+                                }`}
                             >
                               <span
-                                className={`absolute left-4 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-full transition-colors ${
-                                  active ? "bg-brand" : "bg-white/25"
-                                }`}
+                                className={`absolute left-4 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-full transition-colors ${active ? "bg-brand" : "bg-white/25"
+                                  }`}
                               />
                               <ChildIcon
-                                className={`w-4 h-4 shrink-0 ${
-                                  active
+                                className={`w-4 h-4 shrink-0 ${active
                                     ? "text-brand"
                                     : "text-white/50 group-hover:text-white/80"
-                                }`}
+                                  }`}
                               />
                               <span className="truncate">{child.label}</span>
                             </NavLink>
@@ -420,10 +419,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               id="profile-tab"
               onClick={onClose}
               className={({ isActive }) =>
-                `flex items-center gap-2 text-xs px-3 py-2 rounded-lg transition-colors mb-2 ${
-                  isActive
-                    ? "bg-white text-primary"
-                    : "text-white/70 hover:text-white hover:bg-white/10"
+                `flex items-center gap-2 text-xs px-3 py-2 rounded-lg transition-colors mb-2 ${isActive
+                  ? "bg-white text-primary"
+                  : "text-white/70 hover:text-white hover:bg-white/10"
                 }`
               }
             >
