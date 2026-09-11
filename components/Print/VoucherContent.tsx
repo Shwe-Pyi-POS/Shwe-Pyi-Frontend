@@ -205,13 +205,13 @@ export const VoucherContent: React.FC<VoucherContentProps> = ({
           <table className="voucher-table">
             <thead>
               <tr>
-                <th style={{ width: "8%" }}>NO</th>
+                <th style={{ width: "6%" }}>NO</th>
                 {/* <th style={{ width: "10%" }}>CODE</th> */}
-                <th style={{ width: "30%", textAlign: "left" }}>ITEM DESCRIPTION</th>
-                <th style={{ width: "15%" }}>PRICE</th>
-                <th style={{ width: "10%" }}>QTY.</th>
-                <th style={{ width: "10%", textAlign: "right" }}>UNIT</th>
-                <th style={{ width: "10%" }}>TOTAL</th>
+                <th style={{ width: "36%", textAlign: "left" }}>ITEM DESCRIPTION</th>
+                <th style={{ width: "16%" }}>PRICE</th>
+                <th style={{ width: "12%" }}>QTY.</th>
+                <th style={{ width: "12%", textAlign: "right" }}>UNIT</th>
+                <th style={{ width: "18%" }}>TOTAL</th>
               </tr>
             </thead>
             <tbody>

@@ -63,6 +63,8 @@ import {
   formatDueDate,
   getDueDateUrgency,
   getDueDateCellClasses,
+  getCreditPaymentStatus,
+  getCreditStatusBadge,
 } from "../components/Orders/orderUtils";
 import { useLanguage } from "../context/LanguageContext";
 import { DateRangePicker } from "../components/Reports/DateRangePicker";
@@ -130,6 +132,8 @@ export const CreditDetail: React.FC = () => {
   const [creditOrdersPagination, setCreditOrdersPagination] =
     useState<OrderPagination | null>(null);
   const [creditOrdersPage, setCreditOrdersPage] = useState(1);
+  const [creditOrderStatusFilter, setCreditOrderStatusFilter] =
+    useState<string>("all");
 
   // Add Credit Order Modal State
   const [showAddCreditModal, setShowAddCreditModal] = useState(false);
@@ -162,7 +166,7 @@ export const CreditDetail: React.FC = () => {
   useEffect(() => {
     if (id) {
       loadCreditDetail();
-      loadCreditOrders(1);
+      loadCreditOrders(1, creditOrderStatusFilter);
     }
   }, [id]);
 
@@ -173,7 +177,10 @@ export const CreditDetail: React.FC = () => {
     }
   }, [id, mainTab, summaryStartDate, summaryEndDate]);
 
-  const loadCreditOrders = async (page: number = 1) => {
+  const loadCreditOrders = async (
+    page: number = 1,
+    statusFilter: string = creditOrderStatusFilter,
+  ) => {
     if (!id) return;
     setLoadingCreditOrders(true);
     try {
@@ -181,6 +188,7 @@ export const CreditDetail: React.FC = () => {
         creditPersonId: id,
         page,
         limit: 10,
+        paymentStatus: statusFilter !== "all" ? statusFilter : null,
       });
       if (response.success) {
         setCreditOrders(response.data);
@@ -1240,7 +1248,7 @@ export const CreditDetail: React.FC = () => {
               <div className="mb-6">
                 {activeTab === "orders" && (
                   <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-                    <div className="p-4 border-b bg-slate-50 flex justify-between items-center">
+                    <div className="p-4 border-b bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <h2 className="font-semibold text-slate-800 flex items-center gap-2">
                         <Receipt className="w-5 h-5 text-primary" />
                         {t("creditDetail.associatedOrders")} (
@@ -1248,16 +1256,33 @@ export const CreditDetail: React.FC = () => {
                           creditOrders.length}
                         )
                       </h2>
-                      <button
-                        onClick={() => loadCreditOrders(creditOrdersPage)}
-                        disabled={loadingCreditOrders}
-                        className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50"
-                      >
-                        <RefreshCw
-                          className={`w-4 h-4 ${loadingCreditOrders ? "animate-spin" : ""}`}
-                        />
-                        {t("common.refresh")}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <select
+                          className="border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-xs sm:text-sm font-medium focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                          value={creditOrderStatusFilter}
+                          onChange={(e) => {
+                            const newStatus = e.target.value;
+                            setCreditOrderStatusFilter(newStatus);
+                            loadCreditOrders(1, newStatus);
+                          }}
+                        >
+                          <option value="all">{t("creditOrders.statusAll") || "All Status"}</option>
+                          <option value="pending">{t("creditOrders.statusPending") || "Pending Payment"}</option>
+                          <option value="unpaid">{t("creditOrders.statusUnpaid") || "Unpaid"}</option>
+                          <option value="partial">{t("creditOrders.statusPartial") || "Partially Paid"}</option>
+                          <option value="paid">{t("creditOrders.statusFullyPaid") || "Fully Paid"}</option>
+                        </select>
+                        <button
+                          onClick={() => loadCreditOrders(creditOrdersPage, creditOrderStatusFilter)}
+                          disabled={loadingCreditOrders}
+                          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          <RefreshCw
+                            className={`w-4 h-4 ${loadingCreditOrders ? "animate-spin" : ""}`}
+                          />
+                          {t("common.refresh")}
+                        </button>
+                      </div>
                     </div>
                     {loadingCreditOrders ? (
                       <div className="p-12 text-center">
@@ -1399,16 +1424,24 @@ export const CreditDetail: React.FC = () => {
                                     )}
                                   </td>
                                   <td className="px-4 py-3">
-                                    <span
-                                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${order.orderStatus === "completed"
-                                          ? "bg-green-100 text-green-700"
-                                          : order.orderStatus === "cancelled"
-                                            ? "bg-red-100 text-red-700"
-                                            : "bg-yellow-100 text-yellow-700"
-                                        }`}
-                                    >
-                                      {order.orderStatus?.toUpperCase()}
-                                    </span>
+                                    {(() => {
+                                      const creditStatus =
+                                        getCreditPaymentStatus(order);
+                                      const badge = getCreditStatusBadge(
+                                        creditStatus,
+                                        t,
+                                      );
+                                      return (
+                                        <span
+                                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border whitespace-nowrap ${badge.bgColor} ${badge.textColor} ${badge.borderColor}`}
+                                        >
+                                          <span
+                                            className={`w-1.5 h-1.5 rounded-full ${badge.dotColor}`}
+                                          ></span>
+                                          {badge.label}
+                                        </span>
+                                      );
+                                    })()}
                                   </td>
                                   <td className="px-4 py-3">
                                     <div className="flex items-center gap-2">

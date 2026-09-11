@@ -91,8 +91,8 @@ export const getPrintPaperStyles = (paperSize: PrintPaperSize): string => {
         .text-center.mb-4.sm\\:mb-8 { margin-bottom: 8px !important; }
         .voucher-invoice-row { margin-bottom: 8px !important; font-size: 9px !important; }
         .voucher-table { margin: 8px 0 !important; }
-        .voucher-table th { padding: 4px 6px !important; font-size: 9px; }
-        .voucher-table td { padding: 4px 6px !important; font-size: 9px; }
+        .voucher-table th { padding: 6px 8px !important; font-size: 12px !important; }
+        .voucher-table td { padding: 6px 8px !important; font-size: 13px !important; line-height: 1.4 !important; }
         .voucher-total-bar { font-size: 11px !important; padding: 4px 8px !important; }
         .voucher-footer-title { font-size: 10px !important; margin-top: 8px !important; }
         .voucher-sign { margin-top: 12px !important; }
@@ -144,18 +144,18 @@ export const getPrintPaperStyles = (paperSize: PrintPaperSize): string => {
           grid-template-columns: 5mm 17mm 14mm 7mm 11mm 14mm;
         }
         .voucher-thermal-item {
-          padding: 1.2mm 0;
+          padding: 1.4mm 0;
           border-bottom: 1px dashed #ccc;
-          font-size: 8px;
+          font-size: 9px;
           align-items: start;
         }
         .voucher-thermal-header {
           align-items: center;
           background: #1E90FF !important;
           color: white !important;
-          padding: 1.2mm 0.4mm;
+          padding: 1.4mm 0.4mm;
           font-weight: bold;
-          font-size: 7px;
+          font-size: 8px;
         }
         .voucher-thermal-header > div,
         .voucher-thermal-item > div {
@@ -244,8 +244,8 @@ export const getPrintPaperStyles = (paperSize: PrintPaperSize): string => {
         .voucher-container { font-size: 13px; }
         .voucher-logo { width: 120px !important; height: 120px !important; }
         .voucher-shop-name { font-size: 1.25rem !important; }
-        .voucher-table th { padding: 12px; font-size: 12px; }
-        .voucher-table td { padding: 12px; font-size: 13px; }
+        .voucher-table th { padding: 10px 12px; font-size: 15px; }
+        .voucher-table td { padding: 10px 12px; font-size: 16px; line-height: 1.4; }
         .voucher-total-bar { font-size: 1rem !important; }
         .voucher-footer-title { font-size: 1.125rem !important; }
       `;
@@ -264,6 +264,8 @@ export const getSharedTableStyles = (): string => `
     text-align: center;
     font-weight: 700;
     text-transform: uppercase;
+    font-size: 15px;
+    padding: 10px 12px;
   }
   .voucher-table th:first-child { text-align: left; }
   .voucher-table th:last-child { text-align: right; }
@@ -271,6 +273,9 @@ export const getSharedTableStyles = (): string => `
     background-color: #E8E8E8;
     color: #000;
     border-bottom: 3px solid white;
+    font-size: 16px;
+    padding: 10px 12px;
+    line-height: 1.4;
   }
   .voucher-table td:first-child { text-align: left; }
   .voucher-table td:nth-child(2) { text-align: left; }

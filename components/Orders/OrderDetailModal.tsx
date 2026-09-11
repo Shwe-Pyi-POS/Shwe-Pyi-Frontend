@@ -25,6 +25,8 @@ import {
   formatDueDate,
   isDueDateExpired,
   getDueDateUrgency,
+  getCreditPaymentStatus,
+  getCreditStatusBadge,
 } from "./orderUtils";
 import { useLanguage } from "../../context/LanguageContext";
 import { getSavedPrintPaperSize } from "../../utils/printPaperSize";
@@ -527,6 +529,21 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                       {getPaymentMethodLabel(order.paymentMethod)}
                     </span>
                   </div>
+                  {order.paymentType?.toLowerCase() === "credit" && (() => {
+                    const creditStatus = getCreditPaymentStatus(order);
+                    const badge = getCreditStatusBadge(creditStatus, t);
+                    return (
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">Credit Status</span>
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${badge.bgColor} ${badge.textColor} ${badge.borderColor}`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${badge.dotColor}`}></span>
+                          {badge.label}
+                        </span>
+                      </div>
+                    );
+                  })()}
                   {order.remainingBalance !== undefined &&
                     order.remainingBalance > 0 && (
                       <div className="flex justify-between text-orange-600 font-medium">

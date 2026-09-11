@@ -91,6 +91,8 @@ export interface FetchOrdersQueryOptions {
   buyingPrice?: number | null;
   /** Filter by unit price (selling price) — GET /order?unitPrice=... */
   unitPrice?: number | null;
+  /** Filter by payment status — GET /order?paymentStatus=... */
+  paymentStatus?: string | null;
 }
 
 export interface FetchOrdersResponse {
@@ -117,6 +119,10 @@ export const fetchOrders = async (
 
     if (paymentType && paymentType !== "all") {
       params.append("paymentType", paymentType);
+    }
+
+    if (query?.paymentStatus && query.paymentStatus !== "all") {
+      params.append("paymentStatus", query.paymentStatus);
     }
 
     if (query?.paymentMethod && query.paymentMethod !== "all") {

@@ -45,6 +45,61 @@ export const getPaymentTypeColor = (paymentType: string) => {
   }
 };
 
+export type CreditPaymentStatus = "paid" | "partial" | "unpaid";
+
+export const getCreditPaymentStatus = (order: {
+  finalAmount?: number | null;
+  paidAmount?: number | null;
+  remainingBalance?: number | null;
+}): CreditPaymentStatus => {
+  const final = order?.finalAmount ?? 0;
+  const paid = order?.paidAmount ?? 0;
+  const remaining =
+    order?.remainingBalance !== undefined && order?.remainingBalance !== null
+      ? order.remainingBalance
+      : Math.max(0, final - paid);
+
+  if (remaining <= 0 || (final > 0 && paid >= final)) {
+    return "paid";
+  }
+  if (paid > 0) {
+    return "partial";
+  }
+  return "unpaid";
+};
+
+export const getCreditStatusBadge = (
+  status: CreditPaymentStatus,
+  t?: (key: string) => string,
+) => {
+  switch (status) {
+    case "paid":
+      return {
+        label: t ? t("creditOrders.statusFullyPaid") : "ကျေပြီး",
+        bgColor: "bg-emerald-50",
+        textColor: "text-emerald-700",
+        borderColor: "border-emerald-200",
+        dotColor: "bg-emerald-500",
+      };
+    case "partial":
+      return {
+        label: t ? t("creditOrders.statusPartial") : "တပိုင်းဆပ်ပြီး",
+        bgColor: "bg-amber-50",
+        textColor: "text-amber-700",
+        borderColor: "border-amber-200",
+        dotColor: "bg-amber-500",
+      };
+    case "unpaid":
+      return {
+        label: t ? t("creditOrders.statusUnpaid") : "မဆပ်ရသေး",
+        bgColor: "bg-rose-50",
+        textColor: "text-rose-700",
+        borderColor: "border-rose-200",
+        dotColor: "bg-rose-500",
+      };
+  }
+};
+
 export const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleString("en-US", {
     year: "numeric",

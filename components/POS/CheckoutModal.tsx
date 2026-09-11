@@ -130,10 +130,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className={`bg-white shadow-2xl overflow-hidden flex flex-col ${
-          devices.isMobile
-            ? 'w-full h-full max-h-full mx-0 rounded-none'
-            : 'w-full max-w-md mx-4 max-h-[90vh] rounded-xl'
+      <div className={`bg-white shadow-2xl overflow-hidden flex flex-col ${devices.isMobile
+          ? 'w-full h-full max-h-full mx-0 rounded-none'
+          : 'w-full max-w-md mx-4 max-h-[90vh] rounded-xl'
         }`}>
         <div className="p-4 border-b bg-primary/10">
           <div className="flex justify-between items-center">
@@ -236,9 +235,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       <div
                         key={persona._id}
                         onClick={() => handleSelectCustomer(persona)}
-                        className={`px-3 py-2.5 text-sm cursor-pointer hover:bg-primary/5 flex items-center gap-2 ${
-                          persona._id === selectedCreditPersonId ? "bg-primary/10 text-primary font-medium" : "text-gray-700"
-                        }`}
+                        className={`px-3 py-2.5 text-sm cursor-pointer hover:bg-primary/5 flex items-center gap-2 ${persona._id === selectedCreditPersonId ? "bg-primary/10 text-primary font-medium" : "text-gray-700"
+                          }`}
                       >
                         <User className="w-4 h-4 text-gray-400 shrink-0" />
                         <div>
@@ -266,35 +264,34 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 onClick={() => {
                   setShowAddCustomerForm(!showAddCustomerForm);
                 }}
-                className={`p-2.5 border rounded-lg flex items-center justify-center transition-colors text-sm font-medium shrink-0 ${
-                  showAddCustomerForm
+                className={`p-2.5 border rounded-lg flex items-center justify-center transition-colors text-sm font-medium shrink-0 ${showAddCustomerForm
                     ? "bg-primary text-white border-primary hover:bg-primary-600"
                     : "bg-white text-primary border-primary/20 hover:bg-primary/5"
-                }`}
+                  }`}
                 title="Add New Customer"
               >
                 <UserPlus className="w-5 h-5" />
               </button>
             </div>
-              {showAddCustomerForm && (
-                <div className="mt-2">
-                  <AddCustomerInline
-                    onSave={async (name, phone, address) => {
-                      const success = await onAddCustomer(name, phone, address);
-                      if (success) {
-                        setShowAddCustomerForm(false);
-                        setCustomerSearch("");
-                      }
-                      return success;
-                    }}
-                    onCancel={() => {
+            {showAddCustomerForm && (
+              <div className="mt-2">
+                <AddCustomerInline
+                  onSave={async (name, phone, address) => {
+                    const success = await onAddCustomer(name, phone, address);
+                    if (success) {
                       setShowAddCustomerForm(false);
                       setCustomerSearch("");
-                    }}
-                  />
-                </div>
-              )}
-            </div>
+                    }
+                    return success;
+                  }}
+                  onCancel={() => {
+                    setShowAddCustomerForm(false);
+                    setCustomerSearch("");
+                  }}
+                />
+              </div>
+            )}
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -415,11 +412,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               type="number"
               min="0"
               disabled={paymentMethod === PaymentMethod.FOC}
-              className={`w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none ${
-                paymentMethod === PaymentMethod.FOC
+              className={`w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none ${paymentMethod === PaymentMethod.FOC
                   ? "bg-gray-100 cursor-not-allowed"
                   : ""
-              }`}
+                }`}
               value={paymentMethod === PaymentMethod.FOC ? 0 : paidAmount}
               onChange={(e) => {
                 const value =
@@ -510,7 +506,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                             [code]: val,
                           };
                           setPerItemTransportFees(updatedFees);
-                          
+
                           // Sum up to update main transport fee
                           const sum = cart.reduce((totalSum, cartItem) => {
                             const itemCode = cartItem.stockItem.inventoryId.productCode;

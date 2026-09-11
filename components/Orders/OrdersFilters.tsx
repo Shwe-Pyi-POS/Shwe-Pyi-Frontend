@@ -12,6 +12,8 @@ interface OrdersFiltersProps {
   onStorefrontChange: (value: string) => void;
   paymentTypeFilter: string;
   onPaymentTypeChange: (value: string) => void;
+  paymentStatusFilter?: string;
+  onPaymentStatusChange?: (value: string) => void;
   paymentMethodFilter: string;
   onPaymentMethodChange: (value: string) => void;
   orders: Order[];
@@ -19,6 +21,8 @@ interface OrdersFiltersProps {
   totalItems?: number;
   /** When true, show payment type (paid / credit) filter for API-backed lists */
   showPaymentTypeFilter?: boolean;
+  /** When true, show payment status (fully paid / pending / etc) filter */
+  showPaymentStatusFilter?: boolean;
   /** Hide storefront dropdown (e.g. direct-sale orders) */
   hideStorefrontFilter?: boolean;
 }
@@ -31,12 +35,15 @@ export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
   onStorefrontChange,
   paymentTypeFilter,
   onPaymentTypeChange,
+  paymentStatusFilter = "all",
+  onPaymentStatusChange,
   paymentMethodFilter,
   onPaymentMethodChange,
   orders,
   filteredOrders,
   totalItems,
   showPaymentTypeFilter = false,
+  showPaymentStatusFilter = true,
   hideStorefrontFilter = false,
 }) => {
   const { t } = useLanguage();
@@ -86,6 +93,23 @@ export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
                 <option value="all">{t("orders.allTypes")}</option>
                 <option value="paid">{t("orders.paid")}</option>
                 <option value="credit">{t("pos.credit")}</option>
+              </select>
+            </div>
+          )}
+
+          {/* Payment Status Filter */}
+          {showPaymentStatusFilter && onPaymentStatusChange && (
+            <div className="flex items-center gap-2">
+              <select
+                className="border border-gray-200 rounded-lg px-3 py-2.5 sm:px-4 bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm sm:text-base font-medium"
+                value={paymentStatusFilter || "all"}
+                onChange={(e) => onPaymentStatusChange(e.target.value)}
+              >
+                <option value="all">{t("creditOrders.statusAll") || "All Status"}</option>
+                <option value="paid">{t("creditOrders.statusFullyPaid") || "Fully Paid"}</option>
+                <option value="pending">{t("creditOrders.statusPending") || "Pending Payment"}</option>
+                <option value="partial">{t("creditOrders.statusPartial") || "Partially Paid"}</option>
+                <option value="unpaid">{t("creditOrders.statusUnpaid") || "Unpaid"}</option>
               </select>
             </div>
           )}

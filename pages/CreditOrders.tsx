@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   RefreshCw,
   Receipt,
@@ -32,6 +32,8 @@ import {
   parseDueDateString,
   getDueDateUrgency,
   getDueDateCellClasses,
+  getCreditPaymentStatus,
+  getCreditStatusBadge,
 } from "../components/Orders/orderUtils";
 import { SingleDateCalendar } from "../components/Common/SingleDateCalendar";
 import { CreditOrdersFilters } from "../components/Orders/CreditOrdersFilters";
@@ -61,6 +63,7 @@ export const CreditOrders: React.FC = () => {
   const [selectedStorefrontId, setSelectedStorefrontId] =
     useState<string>("all");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>("all");
+  const [creditStatusFilter, setCreditStatusFilter] = useState<string>("all");
   const [nearDueDateFilter, setNearDueDateFilter] = useState(false);
   const [creditPersonas, setCreditPersonas] = useState<CreditPersona[]>([]);
   const [showCreditPersonModal, setShowCreditPersonModal] = useState(false);
@@ -171,7 +174,40 @@ export const CreditOrders: React.FC = () => {
     }
   };
 
+  const statusCounts = useMemo(() => {
+    let pending = 0;
+    let unpaid = 0;
+    let partial = 0;
+    let paid = 0;
+
+    orders.forEach((order) => {
+      const status = getCreditPaymentStatus(order);
+      if (status === "paid") {
+        paid++;
+      } else {
+        pending++;
+        if (status === "partial") {
+          partial++;
+        } else {
+          unpaid++;
+        }
+      }
+    });
+
+    return { total: orders.length, pending, unpaid, partial, paid };
+  }, [orders]);
+
   const filteredOrders = orders.filter((order) => {
+    // Credit status filter
+    if (creditStatusFilter !== "all") {
+      const status = getCreditPaymentStatus(order);
+      if (creditStatusFilter === "pending") {
+        if (status === "paid") return false;
+      } else if (creditStatusFilter !== status) {
+        return false;
+      }
+    }
+
     const searchLower = search.toLowerCase();
 
     const matchesOrderNumber = order.orderNumber
@@ -461,11 +497,125 @@ export const CreditOrders: React.FC = () => {
         onStorefrontChange={setSelectedStorefrontId}
         paymentMethodFilter={paymentMethodFilter}
         onPaymentMethodChange={setPaymentMethodFilter}
+        creditStatusFilter={creditStatusFilter}
+        onCreditStatusFilterChange={setCreditStatusFilter}
         nearDueDateFilter={nearDueDateFilter}
         onNearDueDateFilterChange={setNearDueDateFilter}
         orders={orders}
         filteredOrders={filteredOrders}
       />
+
+      {/* Quick Status Filter Tabs */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <button
+          type="button"
+          onClick={() => setCreditStatusFilter("all")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+            creditStatusFilter === "all"
+              ? "bg-slate-800 text-white shadow-sm"
+              : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+          }`}
+        >
+          <span>{t("creditOrders.statusAll") || "All"}</span>
+          <span
+            className={`px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${
+              creditStatusFilter === "all"
+                ? "bg-slate-700 text-slate-100"
+                : "bg-slate-100 text-slate-600"
+            }`}
+          >
+            {statusCounts.total}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setCreditStatusFilter("pending")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+            creditStatusFilter === "pending"
+              ? "bg-amber-600 text-white shadow-sm"
+              : "bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100"
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+          <span>{t("creditOrders.statusPendingShort") || "Pending"}</span>
+          <span
+            className={`px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${
+              creditStatusFilter === "pending"
+                ? "bg-amber-700 text-amber-100"
+                : "bg-amber-200/70 text-amber-800"
+            }`}
+          >
+            {statusCounts.pending}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setCreditStatusFilter("unpaid")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+            creditStatusFilter === "unpaid"
+              ? "bg-rose-600 text-white shadow-sm"
+              : "bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100"
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-rose-400"></span>
+          <span>{t("creditOrders.statusUnpaid") || "Unpaid"}</span>
+          <span
+            className={`px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${
+              creditStatusFilter === "unpaid"
+                ? "bg-rose-700 text-rose-100"
+                : "bg-rose-200/70 text-rose-800"
+            }`}
+          >
+            {statusCounts.unpaid}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setCreditStatusFilter("partial")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+            creditStatusFilter === "partial"
+              ? "bg-yellow-600 text-white shadow-sm"
+              : "bg-yellow-50 text-yellow-800 border border-yellow-200 hover:bg-yellow-100"
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-yellow-400"></span>
+          <span>{t("creditOrders.statusPartial") || "Partial"}</span>
+          <span
+            className={`px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${
+              creditStatusFilter === "partial"
+                ? "bg-yellow-700 text-yellow-100"
+                : "bg-yellow-200/70 text-yellow-800"
+            }`}
+          >
+            {statusCounts.partial}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setCreditStatusFilter("paid")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+            creditStatusFilter === "paid"
+              ? "bg-emerald-600 text-white shadow-sm"
+              : "bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100"
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span>{t("creditOrders.statusFullyPaid") || "Fully Paid"}</span>
+          <span
+            className={`px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${
+              creditStatusFilter === "paid"
+                ? "bg-emerald-700 text-emerald-100"
+                : "bg-emerald-200/70 text-emerald-800"
+            }`}
+          >
+            {statusCounts.paid}
+          </span>
+        </button>
+      </div>
 
       {/* Orders Table */}
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
@@ -542,6 +692,14 @@ export const CreditOrders: React.FC = () => {
                       </span>
                       <span className="sm:hidden">
                         {t("creditOrders.balance")}
+                      </span>
+                    </th>
+                    <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
+                      <span className="hidden sm:inline">
+                        {t("creditOrders.status")}
+                      </span>
+                      <span className="sm:hidden">
+                        {t("creditOrders.status")}
                       </span>
                     </th>
                     <th className="px-2 sm:px-4 py-3 font-semibold text-slate-600">
@@ -649,6 +807,22 @@ export const CreditOrders: React.FC = () => {
                           {order.remainingBalance.toLocaleString()}{" "}
                           <span className="hidden sm:inline">MMK</span>
                         </span>
+                      </td>
+                      <td className="px-2 sm:px-4 py-3">
+                        {(() => {
+                          const status = getCreditPaymentStatus(order);
+                          const badge = getCreditStatusBadge(status, t);
+                          return (
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${badge.bgColor} ${badge.textColor} ${badge.borderColor}`}
+                            >
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full ${badge.dotColor}`}
+                              ></span>
+                              {badge.label}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="px-2 sm:px-4 py-3">
                         <div className="min-w-0">

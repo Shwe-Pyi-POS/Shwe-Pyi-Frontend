@@ -13,7 +13,11 @@ import {
 import { Order, OrderPagination } from "../../services/Order/fetchOrders";
 import { OrdersPagination as OrdersPaginationBar } from "./OrdersPagination";
 import { deleteOrder } from "../../services/Order/deleteOrder";
-import { getPaymentMethodLabel } from "./orderUtils";
+import {
+  getPaymentMethodLabel,
+  getCreditPaymentStatus,
+  getCreditStatusBadge,
+} from "./orderUtils";
 import { toast } from "sonner";
 import { ConfirmModal } from "../Common/ConfirmModal";
 import { useLanguage } from "../../context/LanguageContext";
@@ -129,7 +133,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
 
       {/* Table container with horizontal scroll on mobile */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left min-w-[780px]">
+        <table className="w-full text-sm text-left min-w-[860px]">
           <thead className="bg-slate-50 border-b">
             <tr>
               <th className="px-3 py-3 font-semibold text-slate-600">
@@ -141,6 +145,9 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
               </th>
               <th className="px-3 py-3 font-semibold text-slate-600">
                 {t("orders.type") || "Type"}
+              </th>
+              <th className="px-3 py-3 font-semibold text-slate-600">
+                {t("creditOrders.status") || "Status"}
               </th>
               <th className="px-3 py-3 font-semibold text-slate-600">
                 {t("creditOrders.items") || "Items"}
@@ -224,15 +231,38 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                     )}
                   </td>
 
-                  {/* Payment Type Badge */}
+                  {/* Type Badge */}
                   <td className="px-3 py-3">
                     {isCredit ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200 whitespace-nowrap">
                         {t("pos.credit") || "Credit"}
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">
                         {t("orders.paid") || "Paid"}
+                      </span>
+                    )}
+                  </td>
+
+                  {/* Status Badge */}
+                  <td className="px-3 py-3">
+                    {isCredit ? (
+                      (() => {
+                        const creditStatus = getCreditPaymentStatus(order);
+                        const badge = getCreditStatusBadge(creditStatus, t);
+                        return (
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border whitespace-nowrap ${badge.bgColor} ${badge.textColor} ${badge.borderColor}`}
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full ${badge.dotColor}`}></span>
+                            {badge.label}
+                          </span>
+                        );
+                      })()
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        {t("creditOrders.statusFullyPaid") || "Fully Paid"}
                       </span>
                     )}
                   </td>

@@ -52,6 +52,7 @@ export const Orders: React.FC = () => {
   const [selectedStorefrontId, setSelectedStorefrontId] =
     useState<string>("all");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>("all");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>("all");
   const [creditPersonas, setCreditPersonas] = useState<CreditPersona[]>([]);
   const [showCreditPersonModal, setShowCreditPersonModal] = useState(false);
   const [selectedOrderForCredit, setSelectedOrderForCredit] =
@@ -88,6 +89,7 @@ export const Orders: React.FC = () => {
     endDate,
     paymentMethodFilter,
     paymentTypeFilter,
+    paymentStatusFilter,
   ]);
 
   useEffect(() => {
@@ -101,6 +103,7 @@ export const Orders: React.FC = () => {
     itemsPerPage,
     paymentMethodFilter,
     paymentTypeFilter,
+    paymentStatusFilter,
   ]);
 
   const loadInitialData = async () => {
@@ -150,6 +153,8 @@ export const Orders: React.FC = () => {
             selectedStorefrontId !== "all" ? selectedStorefrontId : null,
           paymentMethod:
             paymentMethodFilter !== "all" ? paymentMethodFilter : null,
+          paymentStatus:
+            paymentStatusFilter !== "all" ? paymentStatusFilter : null,
           saleType: "storefront",
         },
       );
@@ -352,12 +357,15 @@ export const Orders: React.FC = () => {
         }}
         paymentTypeFilter={paymentTypeFilter}
         onPaymentTypeChange={handlePaymentTypeChange}
+        paymentStatusFilter={paymentStatusFilter}
+        onPaymentStatusChange={setPaymentStatusFilter}
         paymentMethodFilter={paymentMethodFilter}
         onPaymentMethodChange={setPaymentMethodFilter}
         orders={orders}
         filteredOrders={filteredOrders}
         totalItems={pagination?.totalItems}
         showPaymentTypeFilter={true}
+        showPaymentStatusFilter={true}
       />
 
       {/* Orders Table */}

@@ -423,6 +423,14 @@ export const en = {
     nearDueDate: "Due within 7 days",
     nearDueDateShort: "Due 7d",
     dueDateDueSoon: "Due soon",
+    status: "Status",
+    statusAll: "All Status",
+    statusPending: "Pending (Unpaid & Partial)",
+    statusPendingShort: "Pending",
+    statusFullyPaid: "Fully Paid",
+    statusPartial: "Partially Paid",
+    statusUnpaid: "Unpaid",
+    creditStatus: "Credit Status",
   },
 
   credits: {

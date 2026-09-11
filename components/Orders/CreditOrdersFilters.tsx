@@ -11,6 +11,8 @@ interface CreditOrdersFiltersProps {
   onStorefrontChange: (value: string) => void;
   paymentMethodFilter: string;
   onPaymentMethodChange: (value: string) => void;
+  creditStatusFilter: string;
+  onCreditStatusFilterChange: (value: string) => void;
   nearDueDateFilter: boolean;
   onNearDueDateFilterChange: (value: boolean) => void;
   orders: any[];
@@ -25,6 +27,8 @@ export const CreditOrdersFilters: React.FC<CreditOrdersFiltersProps> = ({
   onStorefrontChange,
   paymentMethodFilter,
   onPaymentMethodChange,
+  creditStatusFilter,
+  onCreditStatusFilterChange,
   nearDueDateFilter,
   onNearDueDateFilterChange,
   orders,
@@ -79,6 +83,21 @@ export const CreditOrdersFilters: React.FC<CreditOrdersFiltersProps> = ({
               <option value="bank_transfer">Bank Transfer</option>
               <option value="MMQR">MMQR</option>
               <option value="foc">FOC</option>
+            </select>
+          </div>
+
+          {/* Credit Status Filter */}
+          <div className="flex items-center gap-2">
+            <select
+              className="border border-gray-200 rounded-lg px-3 py-2.5 sm:px-4 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm sm:text-base font-medium"
+              value={creditStatusFilter}
+              onChange={(e) => onCreditStatusFilterChange(e.target.value)}
+            >
+              <option value="all">{t("creditOrders.statusAll") || "All Status"}</option>
+              <option value="pending">{t("creditOrders.statusPending") || "Pending Payment"}</option>
+              <option value="unpaid">{t("creditOrders.statusUnpaid") || "Unpaid"}</option>
+              <option value="partial">{t("creditOrders.statusPartial") || "Partially Paid"}</option>
+              <option value="paid">{t("creditOrders.statusFullyPaid") || "Fully Paid"}</option>
             </select>
           </div>
 
