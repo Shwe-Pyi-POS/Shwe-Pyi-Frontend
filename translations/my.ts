@@ -530,6 +530,12 @@ export const my = {
     refresh: "ပြန်လည်စတင်မည်",
     creditLimit: "အကြွေးကန့်သတ်ငွေ",
     remainingLimit: "ကျန်ရှိသည့် ကန့်သတ်ငွေ",
+    orderTotal: "အော်ဒါစုစုပေါင်း",
+    alreadyPaid: "ပေးချေပြီးငွေ",
+    payFull: "အပြည့်ဆပ်မည်",
+    remainingAfterPayment: "ပေးချေပြီး ကျန်ငွေ",
+    exceedsRemaining: "ကျန်ငွေထက် ပိုနေပါသည် - ပိုသောငွေ",
+    orderFullyPaid: "အော်ဒါအတွက် ငွေအပြည့်ဆပ်ပြီးပါပြီ",
   },
   expenses: {
     title: "ဆိုင်အသုံးစရိတ်",

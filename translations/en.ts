@@ -523,6 +523,12 @@ export const en = {
     refresh: "Refresh",
     creditLimit: "Credit Limit",
     remainingLimit: "Remaining Limit",
+    orderTotal: "Order Total",
+    alreadyPaid: "Paid So Far",
+    payFull: "Pay Full",
+    remainingAfterPayment: "Remaining After Payment",
+    exceedsRemaining: "Exceeds remaining balance by",
+    orderFullyPaid: "Order is already fully paid",
   },
   expenses: {
     title: "Shop Expenses",

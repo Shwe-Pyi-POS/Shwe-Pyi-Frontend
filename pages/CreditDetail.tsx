@@ -246,8 +246,11 @@ export const CreditDetail: React.FC = () => {
       const response = await deleteCreditRecord(paymentToDelete.id);
       if (response.success) {
         toast.success("Payment record deleted successfully");
-        loadCreditDetail();
-        loadCreditOrders(creditOrdersPage);
+        await Promise.all([
+          loadCreditDetail(),
+          loadCreditOrders(creditOrdersPage, creditOrderStatusFilter),
+          loadPaymentRecords(paymentsPage),
+        ]);
         if (mainTab === "summary") {
           loadOrderSummary(summaryStartDate, summaryEndDate);
           loadSummaryOrders(summaryOrdersPage);
@@ -351,6 +354,20 @@ export const CreditDetail: React.FC = () => {
     } finally {
       setLoadingSummaryOrders(false);
     }
+  };
+
+  const handleRefreshAll = async () => {
+    await Promise.all([
+      loadCreditDetail(),
+      loadCreditOrders(creditOrdersPage, creditOrderStatusFilter),
+      loadPaymentRecords(paymentsPage),
+      ...(mainTab === "summary"
+        ? [
+            loadOrderSummary(summaryStartDate, summaryEndDate),
+            loadSummaryOrders(summaryOrdersPage),
+          ]
+        : []),
+    ]);
   };
 
   const formatDateDisplay = (dateString: string) => {
@@ -484,7 +501,15 @@ export const CreditDetail: React.FC = () => {
           paymentMethod: "normal",
           inventoryId: "",
         });
-        await loadCreditDetail();
+        await Promise.all([
+          loadCreditDetail(),
+          loadCreditOrders(1, creditOrderStatusFilter),
+          loadPaymentRecords(1),
+        ]);
+        if (mainTab === "summary") {
+          loadOrderSummary(summaryStartDate, summaryEndDate);
+          loadSummaryOrders(1);
+        }
       } else {
         toast.error(response.message || "Failed to create credit order");
       }
@@ -516,6 +541,18 @@ export const CreditDetail: React.FC = () => {
       return;
     }
 
+    if (paymentForm.paidAmount <= 0) {
+      toast.error(t("creditDetail.enterAmount") || "Please enter a valid amount");
+      return;
+    }
+
+    if (isAmountOverRemaining) {
+      toast.error(
+        `${t("creditDetail.exceedsRemaining") || "Payment exceeds remaining balance by"} ${(paymentForm.paidAmount - (selectedOrderRemaining || 0)).toLocaleString()} MMK`
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const response = await createCreditRecord({
@@ -527,8 +564,16 @@ export const CreditDetail: React.FC = () => {
       if (response.success) {
         toast.success(t("creditDetail.paymentRecorded"));
         handleCloseAddPayment();
-        // Refresh the credit details
-        await loadCreditDetail();
+        // Refresh the credit details and orders
+        await Promise.all([
+          loadCreditDetail(),
+          loadCreditOrders(creditOrdersPage, creditOrderStatusFilter),
+          loadPaymentRecords(paymentsPage),
+        ]);
+        if (mainTab === "summary") {
+          loadOrderSummary(summaryStartDate, summaryEndDate);
+          loadSummaryOrders(summaryOrdersPage);
+        }
       } else {
         toast.error(response.message || t("creditDetail.failedToRecord"));
       }
@@ -557,6 +602,26 @@ export const CreditDetail: React.FC = () => {
       setLoadingOrderDetail(false);
     }
   };
+
+  const selectedOrderForPayment = paymentForm.orderId
+    ? creditOrders.find((o) => o._id === paymentForm.orderId) ||
+      personaDetail?.orders.find((o) => o._id === paymentForm.orderId)
+    : null;
+
+  const selectedOrderRemaining = selectedOrderForPayment
+    ? (selectedOrderForPayment.remainingBalance !== undefined &&
+       selectedOrderForPayment.remainingBalance !== null
+        ? selectedOrderForPayment.remainingBalance
+        : Math.max(
+            0,
+            (selectedOrderForPayment.finalAmount || 0) -
+              (selectedOrderForPayment.paidAmount || 0)
+          ))
+    : null;
+
+  const isAmountOverRemaining =
+    selectedOrderRemaining !== null &&
+    paymentForm.paidAmount > selectedOrderRemaining;
 
   return (
     <div className="p-6">
@@ -610,11 +675,11 @@ export const CreditDetail: React.FC = () => {
           )}
         </div>
         <button
-          onClick={loadCreditDetail}
-          disabled={loading}
+          onClick={handleRefreshAll}
+          disabled={loading || loadingCreditOrders || paymentsLoading}
           className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50"
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          <RefreshCw className={`w-4 h-4 ${loading || loadingCreditOrders || paymentsLoading ? "animate-spin" : ""}`} />
           <span className="hidden md:inline">{t("creditDetail.refresh")}</span>
         </button>
         {personaDetail && (
@@ -1332,12 +1397,21 @@ export const CreditDetail: React.FC = () => {
                               </tr>
                             </thead>
                             <tbody className="divide-y">
-                              {creditOrders.map((order) => (
-                                <tr
-                                  key={order._id}
-                                  className="hover:bg-slate-50 cursor-pointer"
-                                  onClick={() => handleViewOrder(order._id)}
-                                >
+                              {creditOrders.map((order) => {
+                                const creditStatus =
+                                  getCreditPaymentStatus(order);
+                                const badge = getCreditStatusBadge(
+                                  creditStatus,
+                                  t,
+                                );
+                                const isFullyPaid = creditStatus === "paid";
+
+                                return (
+                                  <tr
+                                    key={order._id}
+                                    className="hover:bg-slate-50 cursor-pointer"
+                                    onClick={() => handleViewOrder(order._id)}
+                                  >
                                   <td className="px-4 py-3">
                                     <span className="font-medium text-blue-600">
                                       {order.orderNumber}
@@ -1424,24 +1498,14 @@ export const CreditDetail: React.FC = () => {
                                     )}
                                   </td>
                                   <td className="px-4 py-3">
-                                    {(() => {
-                                      const creditStatus =
-                                        getCreditPaymentStatus(order);
-                                      const badge = getCreditStatusBadge(
-                                        creditStatus,
-                                        t,
-                                      );
-                                      return (
-                                        <span
-                                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border whitespace-nowrap ${badge.bgColor} ${badge.textColor} ${badge.borderColor}`}
-                                        >
-                                          <span
-                                            className={`w-1.5 h-1.5 rounded-full ${badge.dotColor}`}
-                                          ></span>
-                                          {badge.label}
-                                        </span>
-                                      );
-                                    })()}
+                                    <span
+                                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border whitespace-nowrap ${badge.bgColor} ${badge.textColor} ${badge.borderColor}`}
+                                    >
+                                      <span
+                                        className={`w-1.5 h-1.5 rounded-full ${badge.dotColor}`}
+                                      ></span>
+                                      {badge.label}
+                                    </span>
                                   </td>
                                   <td className="px-4 py-3">
                                     <div className="flex items-center gap-2">
@@ -1456,13 +1520,26 @@ export const CreditDetail: React.FC = () => {
                                         {t("creditOrders.view")}
                                       </button>
                                       <button
+                                        disabled={isFullyPaid}
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          handleOpenAddPaymentForOrder(
-                                            order._id,
-                                          );
+                                          if (!isFullyPaid) {
+                                            handleOpenAddPaymentForOrder(
+                                              order._id,
+                                            );
+                                          }
                                         }}
-                                        className="text-xs bg-green-100 text-green-700 px-2.5 py-1.5 rounded hover:bg-green-200 border border-green-200 font-medium transition-colors flex items-center gap-1"
+                                        className={`text-xs px-2.5 py-1.5 rounded border font-medium transition-colors flex items-center gap-1 ${
+                                          isFullyPaid
+                                            ? "bg-green-100 text-green-700 border-green-200 opacity-50 cursor-not-allowed"
+                                            : "bg-green-100 text-green-700 hover:bg-green-200 border-green-200 cursor-pointer"
+                                        }`}
+                                        title={
+                                          isFullyPaid
+                                            ? t("creditDetail.orderFullyPaid") ||
+                                              "Order is already fully paid"
+                                            : t("creditDetail.addPayment")
+                                        }
                                       >
                                         <Coins className="w-3 h-3" />
                                         {t("creditDetail.addPayment")}
@@ -1470,7 +1547,8 @@ export const CreditDetail: React.FC = () => {
                                     </div>
                                   </td>
                                 </tr>
-                              ))}
+                                );
+                              })}
                             </tbody>
                           </table>
                         </div>
@@ -1898,12 +1976,74 @@ export const CreditDetail: React.FC = () => {
                   <option value="">
                     -- {t("creditDetail.selectOrder")} --
                   </option>
-                  {[...personaDetail?.orders].reverse().map((order) => (
-                    <option key={order._id} value={order._id}>
-                      {order.orderNumber}
-                    </option>
-                  ))}
+                  {[...personaDetail?.orders].reverse().map((order) => {
+                    const matchedOrder = creditOrders.find(
+                      (o) => o._id === order._id
+                    );
+                    const remaining =
+                      matchedOrder?.remainingBalance ??
+                      order.remainingBalance ??
+                      (order.finalAmount !== undefined &&
+                      order.paidAmount !== undefined
+                        ? Math.max(0, order.finalAmount - order.paidAmount)
+                        : undefined);
+
+                    const isPaid = remaining !== undefined && remaining <= 0;
+
+                    return (
+                      <option key={order._id} value={order._id}>
+                        {order.orderNumber}
+                        {isPaid
+                          ? ` (${t("creditOrders.statusFullyPaid") || "Fully Paid"})`
+                          : remaining !== undefined
+                          ? ` (${t("creditDetail.remaining") || "Remaining"}: ${remaining.toLocaleString()} MMK)`
+                          : ""}
+                      </option>
+                    );
+                  })}
                 </select>
+
+                {/* Remaining Balance Breakdown Card */}
+                {selectedOrderForPayment && selectedOrderRemaining !== null && (
+                  <div className="mt-2.5 p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                    <div className="flex justify-between items-center text-xs text-slate-500">
+                      <span>{t("creditDetail.orderTotal") || "Order Total"}:</span>
+                      <span className="font-semibold text-slate-700">
+                        {(selectedOrderForPayment.finalAmount || 0).toLocaleString()} MMK
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs text-slate-500">
+                      <span>{t("creditDetail.alreadyPaid") || "Paid So Far"}:</span>
+                      <span className="font-semibold text-green-600">
+                        {(selectedOrderForPayment.paidAmount || 0).toLocaleString()} MMK
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+                      <span className="text-sm font-semibold text-slate-700">
+                        {t("creditDetail.remaining") || "Remaining Balance"}:
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-base font-bold text-orange-600">
+                          {selectedOrderRemaining.toLocaleString()} MMK
+                        </span>
+                        {selectedOrderRemaining > 0 && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPaymentForm({
+                                ...paymentForm,
+                                paidAmount: selectedOrderRemaining,
+                              })
+                            }
+                            className="text-xs font-semibold bg-green-100 hover:bg-green-200 text-green-700 px-2.5 py-1 rounded-md transition-colors"
+                          >
+                            {t("creditDetail.payFull") || "Pay Full"}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Amount */}
@@ -1915,7 +2055,12 @@ export const CreditDetail: React.FC = () => {
                 <input
                   type="number"
                   min="0"
-                  className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                  max={selectedOrderRemaining !== null ? selectedOrderRemaining : undefined}
+                  className={`w-full border rounded-lg p-3 focus:ring-2 outline-none transition-colors ${
+                    isAmountOverRemaining
+                      ? "border-red-300 focus:ring-red-500 focus:border-red-500 bg-red-50/20"
+                      : "border-slate-300 focus:ring-green-500 focus:border-green-500"
+                  }`}
                   placeholder={t("creditDetail.enterAmount")}
                   value={paymentForm.paidAmount || ""}
                   onChange={(e) =>
@@ -1925,6 +2070,30 @@ export const CreditDetail: React.FC = () => {
                     })
                   }
                 />
+                {paymentForm.paidAmount > 0 && selectedOrderRemaining !== null && (
+                  <div className="mt-1.5 flex justify-between items-center text-xs px-1">
+                    <span className="text-slate-500">
+                      {t("creditDetail.remainingAfterPayment") || "Remaining After Payment"}:
+                    </span>
+                    <span
+                      className={`font-semibold ${
+                        isAmountOverRemaining ? "text-red-600" : "text-slate-700"
+                      }`}
+                    >
+                      {isAmountOverRemaining ? (
+                        <span className="text-red-500">
+                          ⚠️ {t("creditDetail.exceedsRemaining") || "Exceeds remaining balance by"}{" "}
+                          {(paymentForm.paidAmount - selectedOrderRemaining).toLocaleString()} MMK
+                        </span>
+                      ) : (
+                        `${Math.max(
+                          0,
+                          selectedOrderRemaining - paymentForm.paidAmount
+                        ).toLocaleString()} MMK`
+                      )}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Payment Method */}
@@ -1960,8 +2129,13 @@ export const CreditDetail: React.FC = () => {
               </button>
               <button
                 onClick={handleAddPayment}
-                disabled={isSubmitting}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-2 font-medium"
+                disabled={
+                  isSubmitting ||
+                  !paymentForm.orderId ||
+                  paymentForm.paidAmount <= 0 ||
+                  isAmountOverRemaining
+                }
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
               >
                 {isSubmitting ? (
                   <>

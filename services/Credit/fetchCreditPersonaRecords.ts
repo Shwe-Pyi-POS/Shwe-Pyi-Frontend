@@ -43,6 +43,11 @@ export interface CreditPersonaSummary {
 export interface CreditPersonaOrder {
   _id: string;
   orderNumber: string;
+  finalAmount?: number;
+  paidAmount?: number;
+  remainingBalance?: number;
+  lastPaymentDate?: string | null;
+  dueDate?: string | null;
 }
 
 export interface CreditPersonaRecordsData {
